@@ -1,0 +1,99 @@
+﻿[dotenv@17.3.1] injecting env (8) from .env -- tip: ÔÜÖ´©Å  write to custom object with { processEnv: myObject }
+
+Table afazeres_midia has 1 records. Latest record:
+{
+  "id": 1,
+  "tarefa": "Gerenciar o Bazar e arrecadamento",
+  "responsavel": "Qu├®zia",
+  "concluido": 0
+}
+
+Table agenda has 5 records. Latest record:
+{
+  "id": 6,
+  "titulo": "Culto FISHERS",
+  "data": "2026-02-28T03:00:00.000Z",
+  "horario": "18:00",
+  "tipo": "culto",
+  "pregador": "Pastor Gustavo",
+  "tema": "O que Significa Seguir a JESUS?"
+}
+
+Table avisos has 2 records. Latest record:
+{
+  "id": 2,
+  "titulo": "Almo├ºo",
+  "descricao": "Quem ir├í convidar o Pastor para Almo├ºar.....kkkk"
+}
+
+Table conteudo_pastor has 3 records. Latest record:
+{
+  "id": 3,
+  "titulo": "Roteiro do Culto DoutrinaFlix",
+  "tipo": "comunicado",
+  "descricao": "",
+  "data": "2026-02-25T03:00:00.000Z",
+  "url_video": "",
+  "url_arquivo": "http://localhost:3001/uploads/1772037201312-249433679.pdf"
+}
+
+Table devocionais has 1 records. Latest record:
+{
+  "id": 1,
+  "titulo": "Vers├¡culo do Dia",
+  "texto": "Esperei com paci├¬ncia pelo Senhor, e ele se inclinou para mim e ouviu o meu clamor.┬á ┬á",
+  "texto_longo": null,
+  "referencia": "Salmos 40:1",
+  "autor": "B├¡blia Sagrada",
+  "data": "2026-02-25T03:00:00.000Z"
+}
+
+Table escala_midia has 2 records. Latest record:
+{
+  "id": 2,
+  "nome": "Leticia",
+  "funcao": "Tv e Proje├º├úo",
+  "data": "2026-02-28T03:00:00.000Z"
+}
+
+Table escalas has 2 records. Latest record:
+{
+  "id": 2,
+  "data": "2026-02-28T03:00:00.000Z",
+  "culto": "Culto FISHERS",
+  "recepcao": "Qu├®sia",
+  "louvor": "Kaliny, Christian, Mayra, Michele",
+  "diaconos": "Nelson",
+  "oracao": "Pastor Gustavo",
+  "pregador": "Pastor Gustavo",
+  "tema": "O que Significa Seguir a JESUS?"
+}
+
+Table financeiro_contas has 2 records. Latest record:
+{
+  "id": 4,
+  "descricao": "Internet",
+  "valor": "90.00",
+  "vencimento": "2026-02-20T03:00:00.000Z",
+  "status": "pago",
+  "url_arquivo": null
+}
+
+Table financeiro_recibos has 3 records. Latest record:
+{
+  "id": 4,
+  "descricao": "Saldo do m├¬s anterior",
+  "valor": "379.00",
+  "data": "2026-02-01T03:00:00.000Z",
+  "tipo": "entrada",
+  "url_arquivo": null
+}
+
+Table pedidos_oracao has 2 records. Latest record:
+{
+  "id": 2,
+  "nome": "Rodrigo",
+  "pedido": "Trabalho e parar de ser Bobo",
+  "data": "2026-02-25T03:00:00.000Z",
+  "respondido": 0
+}

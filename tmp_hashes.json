@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Super Admin",
+    "email": "admin@sistema.com",
+    "password_hash": "$2b$10$0nZF7DSX4/JfomDTfQlI9uxS7SHqv94bGC5zvFRq2Xb2luIPk0UVC"
+  },
+  {
+    "name": "Gustavo Rocha",
+    "email": "gustavorocha@gmail.com",
+    "password_hash": "$2b$10$QuXTAUd9cyrlDW0qPs4eBe/HNBGb/EUwHxZzOXTIMlSL0j.UUKgKW"
+  },
+  {
+    "name": "Moyses Silva",
+    "email": "moysessilva@gmail.com",
+    "password_hash": "$2b$10$BzGy.taNKHuQLLCVsx8FguZtEjiShND1ztKyo28TpOapSDRyuxsSK"
+  },
+  {
+    "name": "Marcel Galdino",
+    "email": "marcelgaldino84@gmail.com",
+    "password_hash": "$2b$10$mvvAC9lmVvNdoVmMEwQsgeMGAn9CxAI6RxcPqOMHX.hU3alRTibGG"
+  },
+  {
+    "name": "Amelia Oliveira",
+    "email": "amelia@gmail.com",
+    "password_hash": "$2b$10$xjhOizxgyomxkFpc2kdbXOsSbl7iI1/9bkMYSUEeKfJcjqYyC9uDC"
+  },
+  {
+    "name": "Kaliny Kelly",
+    "email": "kaliny@gmail.com",
+    "password_hash": "$2b$10$zhuxqpIYz.CWBQnF7OXLse3Sb22jflf.vqcrUXKu47yCMe9v9NSb2"
+  },
+  {
+    "name": "Michele Martins",
+    "email": "michele@gmail.com",
+    "password_hash": "$2b$10$SslcKpLa9Q4PZ37rPlYaq.4VCuQ3x4IeQGC/iC7y4u4yGJ2OiOzbS"
+  },
+  {
+    "name": "Nelson Freitas",
+    "email": "nelson@gmail.com",
+    "password_hash": "$2b$10$d5h8x6ZU8wIkBHQ2vYCWl.PBbI/JSlBygUtRpGA5u1WRhylTFo45u"
+  },
+  {
+    "name": "Lucas Dantas",
+    "email": "lucas@gmail.com",
+    "password_hash": "$2b$10$4IcRZlCe7Tnx3Gr.wBMgN.I2CF0.XZ.pn1jYBaNjp2aSuN93WIc7O"
+  },
+  {
+    "name": "Test User",
+    "email": "test@test.com",
+    "password_hash": "$2b$10$vLrqi8PbYkxWCZWLuriGLe5XnxcTYxRpJZoGqlfy49GE.z1J/mBK."
+  }
+]

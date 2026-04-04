@@ -1,0 +1,83 @@
+﻿[dotenv@17.3.1] injecting env (9) from .env -- tip: ­ƒöÉ encrypt with Dotenvx: https://dotenvx.com
+Users: [
+  {
+    id: 1,
+    email: 'admin@sistema.com',
+    role: 'super_admin',
+    password_hash: '$2b$10$l2IXCdKQfti5IfY1U2.SfOWjRvl5QUWEI.VJ7ERdzs2oftAq2TKrO'
+  },
+  {
+    id: 4,
+    email: 'gustavorocha@gmail.com',
+    role: 'admin_igreja',
+    password_hash: '$2b$10$ZPLYA2Xn5xHdvaqYBi4xYe2mN/ZaMSwTcEej0HC8YkN1kU39gene.'
+  },
+  {
+    id: 5,
+    email: 'moysessilva@gmail.com',
+    role: 'admin_igreja',
+    password_hash: '$2b$10$U2YF9Fq/aZtIuwO1uw3tIuVTRF3PO2DNSLD32xavOz6j95W2tTJ2.'
+  },
+  {
+    id: 7,
+    email: 'marcelgaldino84@gmail.com',
+    role: 'super_admin',
+    password_hash: '$2b$10$l2IXCdKQfti5IfY1U2.SfOWjRvl5QUWEI.VJ7ERdzs2oftAq2TKrO'
+  },
+  {
+    id: 8,
+    email: 'amelia@gmail.com',
+    role: 'user',
+    password_hash: '$2b$10$xjhOizxgyomxkFpc2kdbXOsSbl7iI1/9bkMYSUEeKfJcjqYyC9uDC'
+  },
+  {
+    id: 9,
+    email: 'kaliny@gmail.com',
+    role: 'user',
+    password_hash: '$2b$10$zQg7cm9D3F.1XQ4V9Q/h/Oo3wutO9iPOPd9/h6AqDPrsjV7bwfM8e'
+  },
+  {
+    id: 10,
+    email: 'michele@gmail.com',
+    role: 'user',
+    password_hash: '$2b$10$SslcKpLa9Q4PZ37rPlYaq.4VCuQ3x4IeQGC/iC7y4u4yGJ2OiOzbS'
+  },
+  {
+    id: 11,
+    email: 'nelson@gmail.com',
+    role: 'user',
+    password_hash: '$2b$10$d5h8x6ZU8wIkBHQ2vYCWl.PBbI/JSlBygUtRpGA5u1WRhylTFo45u'
+  },
+  {
+    id: 12,
+    email: 'lucas@gmail.com',
+    role: 'user',
+    password_hash: '$2b$10$4IcRZlCe7Tnx3Gr.wBMgN.I2CF0.XZ.pn1jYBaNjp2aSuN93WIc7O'
+  },
+  {
+    id: 13,
+    email: 'test@test.com',
+    role: 'user',
+    password_hash: '$2b$10$vLrqi8PbYkxWCZWLuriGLe5XnxcTYxRpJZoGqlfy49GE.z1J/mBK.'
+  }
+]
+User admin@sistema.com password '123456' is valid: false
+User admin@sistema.com password 'admin' is valid: false
+User gustavorocha@gmail.com password '123456' is valid: false
+User gustavorocha@gmail.com password 'admin' is valid: false
+User moysessilva@gmail.com password '123456' is valid: false
+User moysessilva@gmail.com password 'admin' is valid: false
+User marcelgaldino84@gmail.com password '123456' is valid: false
+User marcelgaldino84@gmail.com password 'admin' is valid: false
+User amelia@gmail.com password '123456' is valid: false
+User amelia@gmail.com password 'admin' is valid: false
+User kaliny@gmail.com password '123456' is valid: false
+User kaliny@gmail.com password 'admin' is valid: false
+User michele@gmail.com password '123456' is valid: false
+User michele@gmail.com password 'admin' is valid: false
+User nelson@gmail.com password '123456' is valid: false
+User nelson@gmail.com password 'admin' is valid: false
+User lucas@gmail.com password '123456' is valid: false
+User lucas@gmail.com password 'admin' is valid: false
+User test@test.com password '123456' is valid: true
+User test@test.com password 'admin' is valid: false

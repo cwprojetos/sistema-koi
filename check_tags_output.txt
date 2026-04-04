@@ -1,0 +1,120 @@
+﻿ORPHAN CLOSING TAG: </ModuleGuard> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </ModuleGuard> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </ModuleGuard> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </ModuleGuard> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </ModuleGuard> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </AdminGuard> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </AdminGuard> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </Routes> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </MainLayout> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </Routes> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </BrowserRouter> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </TooltipProvider> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </AuthProvider> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </ConfigProvider> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </QueryClientProvider> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+UNCLOSED TAGS: QueryClientProvider, ConfigProvider, AuthProvider, TooltipProvider, BrowserRouter, Routes, Route, Routes, Route, Route, Route, Route, Route, Route, Route in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\App.tsx
+ORPHAN CLOSING TAG: </DialogContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\AppSidebar.tsx
+ORPHAN CLOSING TAG: </Dialog> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\AppSidebar.tsx
+ORPHAN CLOSING TAG: </DialogContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\AppSidebar.tsx
+ORPHAN CLOSING TAG: </Dialog> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\AppSidebar.tsx
+ORPHAN CLOSING TAG: </SidebarFooter> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\AppSidebar.tsx
+ORPHAN CLOSING TAG: </Sidebar> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\AppSidebar.tsx
+UNCLOSED TAGS: HTMLInputElement, Sidebar, SidebarFooter, Dialog, DialogContent, Input, Input, Input, Dialog, DialogContent, Input, Input, Input, Input in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\AppSidebar.tsx
+ORPHAN CLOSING TAG: </DialogContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\BibleDialog.tsx
+ORPHAN CLOSING TAG: </Dialog> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\BibleDialog.tsx
+UNCLOSED TAGS: S, S, Dialog, DialogContent, Input in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\BibleDialog.tsx
+UNCLOSED TAGS: HTMLVideoElement, MediaStream in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\LiveCaptionsDialog.tsx
+UNCLOSED TAGS: NavLinkProps, HTMLAnchorElement, RouterNavLink in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\NavLink.tsx
+ORPHAN CLOSING TAG: </motion.div> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\SugestaoButton.tsx
+ORPHAN CLOSING TAG: </AnimatePresence> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\SugestaoButton.tsx
+UNCLOSED TAGS: AnimatePresence, motion.div, Input in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\SugestaoButton.tsx
+UNCLOSED TAGS: AccordionPrimitive, AccordionPrimitive, AccordionPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\accordion.tsx
+UNCLOSED TAGS: HTMLDivElement, HTMLDivElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\alert-dialog.tsx
+UNCLOSED TAGS: HTMLDivElement, HTMLParagraphElement, HTMLParagraphElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\alert.tsx
+UNCLOSED TAGS: HTMLDivElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\badge.tsx
+UNCLOSED TAGS: HTMLOListElement, HTMLLIElement, HTMLSpanElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\breadcrumb.tsx
+UNCLOSED TAGS: HTMLButtonElement, HTMLButtonElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\button.tsx
+UNCLOSED TAGS: DayPicker in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\calendar.tsx
+UNCLOSED TAGS: HTMLDivElement, HTMLDivElement, HTMLParagraphElement, HTMLParagraphElement, HTMLDivElement, HTMLDivElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\card.tsx
+UNCLOSED TAGS: CarouselContextProps, HTMLDivElement, HTMLDivElement, CarouselContext, HTMLDivElement, HTMLDivElement, HTMLButtonElement, HTMLButtonElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\carousel.tsx
+UNCLOSED TAGS: ChartContextProps, ChartContext, RechartsPrimitive, RechartsPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\chart.tsx
+UNCLOSED TAGS: CheckboxPrimitive, CheckboxPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\checkbox.tsx
+UNCLOSED TAGS: HTMLSpanElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\command.tsx
+UNCLOSED TAGS: ContextMenuPrimitive, ContextMenuPrimitive, ContextMenuPrimitive, ContextMenuPrimitive, ContextMenuPrimitive, ContextMenuPrimitive, HTMLSpanElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\context-menu.tsx
+ORPHAN CLOSING TAG: </DialogPortal> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\dialog.tsx
+UNCLOSED TAGS: DialogPortal, DialogPrimitive, DialogPrimitive, HTMLDivElement, HTMLDivElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\dialog.tsx
+ORPHAN CLOSING TAG: </DrawerPortal> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\drawer.tsx
+UNCLOSED TAGS: DrawerPortal, DrawerPrimitive, HTMLDivElement, HTMLDivElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\drawer.tsx
+UNCLOSED TAGS: DropdownMenuPrimitive, DropdownMenuPrimitive, DropdownMenuPrimitive, DropdownMenuPrimitive, DropdownMenuPrimitive, DropdownMenuPrimitive, HTMLSpanElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\dropdown-menu.tsx
+UNCLOSED TAGS: TFieldValues, TFieldValues, FormFieldContextValue, TFieldValues, TFieldValues, TFieldValues, FormFieldContext, FormField, FormItemContextValue, HTMLDivElement, FormItemContext, React, HTMLParagraphElement, HTMLParagraphElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\form.tsx
+UNCLOSED TAGS: React, React, React in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\input-otp.tsx
+UNCLOSED TAGS: HTMLInputElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\input.tsx
+UNCLOSED TAGS: MenubarPrimitive, MenubarPrimitive, MenubarPrimitive, MenubarPrimitive, MenubarPrimitive, MenubarPrimitive, HTMLSpanElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\menubar.tsx
+UNCLOSED TAGS: NavigationMenuPrimitive, NavigationMenuPrimitive, NavigationMenuPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\navigation-menu.tsx
+UNCLOSED TAGS: HTMLUListElement, HTMLLIElement, ButtonProps in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\pagination.tsx
+UNCLOSED TAGS: PopoverPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\popover.tsx
+UNCLOSED TAGS: ProgressPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\progress.tsx
+UNCLOSED TAGS: RadioGroupPrimitive, RadioGroupPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\radio-group.tsx
+UNCLOSED TAGS: ResizablePrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\resizable.tsx
+UNCLOSED TAGS: ScrollAreaPrimitive, ScrollAreaPrimitive, ScrollAreaPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\scroll-area.tsx
+UNCLOSED TAGS: SelectPrimitive, SelectPrimitive, SelectPrimitive, SelectPrimitive, SelectPrimitive, SelectPrimitive, SelectPrimitive, SelectPrimitive, SelectPrimitive, SelectPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\select.tsx
+ORPHAN CLOSING TAG: </SheetPortal> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\sheet.tsx
+UNCLOSED TAGS: React, SheetPortal, SheetPrimitive, SheetPrimitive, HTMLDivElement, HTMLDivElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\sheet.tsx
+UNCLOSED TAGS: SidebarContext, SidebarContext, SidebarContext, React, HTMLButtonElement, HTMLDivElement, React, HTMLDivElement, HTMLDivElement, React, HTMLDivElement, HTMLDivElement, HTMLDivElement, Comp, HTMLButtonElement, Comp, HTMLDivElement, HTMLUListElement, HTMLLIElement, Comp, HTMLDivElement, HTMLUListElement, HTMLLIElement, Comp in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\sidebar.tsx
+UNCLOSED TAGS: HTMLDivElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\skeleton.tsx
+UNCLOSED TAGS: SliderPrimitive, SliderPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\slider.tsx
+UNCLOSED TAGS: SwitchPrimitives in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\switch.tsx
+UNCLOSED TAGS: HTMLTableElement, HTMLTableSectionElement, HTMLTableSectionElement, HTMLTableSectionElement, HTMLTableRowElement, HTMLTableCellElement, HTMLTableCellElement, HTMLTableCaptionElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\table.tsx
+UNCLOSED TAGS: HTMLTextAreaElement, HTMLTextAreaElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\textarea.tsx
+UNCLOSED TAGS: ToastPrimitives in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\toast.tsx
+UNCLOSED TAGS: VariantProps, ToggleGroupPrimitive, ToggleGroupContext, ToggleGroupPrimitive in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\ui\toggle-group.tsx
+UNCLOSED TAGS: VideoMeetingModalProps, HTMLDivElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\VideoMeetingModal.tsx
+UNCLOSED TAGS: YoutubeResult, Input in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\components\YoutubeSearch.tsx
+UNCLOSED TAGS: AuthContextType, User, Record, AuthContext in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\contexts\AuthContext.tsx
+UNCLOSED TAGS: ConfigContextType, ConfigType, ConfigContext in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\contexts\ConfigContext.tsx
+UNCLOSED TAGS: HTMLFormElement, HTMLFormElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Agenda.tsx
+UNCLOSED TAGS: Participante, Planejamento, Reuniao, Participante, Planejamento, Reuniao, HTMLFormElement, HTMLFormElement, HTMLFormElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Conselho.tsx
+ORPHAN CLOSING TAG: </motion.div> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Escalas.tsx
+UNCLOSED TAGS: HTMLFormElement, motion.div, RoleCard, RoleCard, RoleCard, RoleCard in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Escalas.tsx
+ORPHAN CLOSING TAG: </DialogContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\EscolaBiblica.tsx
+ORPHAN CLOSING TAG: </Dialog> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\EscolaBiblica.tsx
+ORPHAN CLOSING TAG: </motion.div> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\EscolaBiblica.tsx
+UNCLOSED TAGS: HTMLInputElement, HTMLInputElement, File, File, HTMLInputElement, HTMLInputElement, HTMLFormElement, Input, Input, Dialog, DialogContent, Input, motion.div, Input in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\EscolaBiblica.tsx
+ORPHAN CLOSING TAG: </DialogContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </Dialog> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </PieChart> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </ResponsiveContainer> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </PieChart> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </ResponsiveContainer> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </PieChart> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </ResponsiveContainer> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </motion.div> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </TabsContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </Tabs> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+UNCLOSED TAGS: File, HTMLInputElement, HTMLFormElement, Dialog, DialogContent, Input, Input, Tabs, TabsContent, motion.div, ResponsiveContainer, PieChart, Tooltip, ResponsiveContainer, PieChart, Tooltip, ResponsiveContainer, PieChart, Tooltip in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Financeiro.tsx
+ORPHAN CLOSING TAG: </motion.form> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Login.tsx
+ORPHAN CLOSING TAG: </AnimatePresence> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Login.tsx
+ORPHAN CLOSING TAG: </motion.div> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Login.tsx
+UNCLOSED TAGS: motion.div, AnimatePresence, motion.form, Input, Input in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Login.tsx
+ORPHAN CLOSING TAG: </motion.div> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Louvor.tsx
+ORPHAN CLOSING TAG: </TabsContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Louvor.tsx
+ORPHAN CLOSING TAG: </AnimatePresence> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Louvor.tsx
+ORPHAN CLOSING TAG: </Tabs> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Louvor.tsx
+UNCLOSED TAGS: HTMLFormElement, PresenceReportModal, Tabs, AnimatePresence, TabsContent, motion.div, Input in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Louvor.tsx
+ORPHAN CLOSING TAG: </TabsContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Membros.tsx
+ORPHAN CLOSING TAG: </TabsContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Membros.tsx
+ORPHAN CLOSING TAG: </motion.div> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Membros.tsx
+ORPHAN CLOSING TAG: </AnimatePresence> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Membros.tsx
+ORPHAN CLOSING TAG: </Tabs> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Membros.tsx
+ORPHAN CLOSING TAG: </DialogContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Membros.tsx
+ORPHAN CLOSING TAG: </Dialog> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Membros.tsx
+UNCLOSED TAGS: HTMLFormElement, Tabs, AnimatePresence, motion.div, TabsContent, Input, TabsContent, Input, Dialog, DialogContent, Input, Input, Input, Input, Input, Input, Input, PresenceReportModal in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Membros.tsx
+UNCLOSED TAGS: HTMLFormElement, PresenceReportModal in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Midia.tsx
+UNCLOSED TAGS: HTMLFormElement, HTMLFormElement in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Oracao.tsx
+ORPHAN CLOSING TAG: </DialogContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\PastorCorner.tsx
+ORPHAN CLOSING TAG: </Dialog> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\PastorCorner.tsx
+UNCLOSED TAGS: HTMLInputElement, File, HTMLInputElement, HTMLFormElement, Dialog, DialogContent, Input in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\PastorCorner.tsx
+ORPHAN CLOSING TAG: </DialogContent> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Projetos.tsx
+ORPHAN CLOSING TAG: </Dialog> in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Projetos.tsx
+UNCLOSED TAGS: Dialog, DialogContent, Input, VideoMeetingModal in c:\Users\marce\OneDrive\Desktop\Sistema - Promessa\src\pages\Projetos.tsx

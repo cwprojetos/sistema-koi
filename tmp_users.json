@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "name": "Super Admin",
+    "email": "admin@sistema.com",
+    "role": "super_admin",
+    "church_id": null
+  },
+  {
+    "id": 4,
+    "name": "Gustavo Rocha",
+    "email": "gustavorocha@gmail.com",
+    "role": "admin_igreja",
+    "church_id": 1
+  },
+  {
+    "id": 5,
+    "name": "Moyses Silva",
+    "email": "moysessilva@gmail.com",
+    "role": "admin_igreja",
+    "church_id": 4
+  },
+  {
+    "id": 7,
+    "name": "Marcel Galdino",
+    "email": "marcelgaldino84@gmail.com",
+    "role": "super_admin",
+    "church_id": 1
+  },
+  {
+    "id": 8,
+    "name": "Amelia Oliveira",
+    "email": "amelia@gmail.com",
+    "role": "user",
+    "church_id": 1
+  },
+  {
+    "id": 9,
+    "name": "Kaliny Kelly",
+    "email": "kaliny@gmail.com",
+    "role": "user",
+    "church_id": 1
+  },
+  {
+    "id": 10,
+    "name": "Michele Martins",
+    "email": "michele@gmail.com",
+    "role": "user",
+    "church_id": 1
+  },
+  {
+    "id": 11,
+    "name": "Nelson Freitas",
+    "email": "nelson@gmail.com",
+    "role": "user",
+    "church_id": 1
+  },
+  {
+    "id": 12,
+    "name": "Lucas Dantas",
+    "email": "lucas@gmail.com",
+    "role": "user",
+    "church_id": 1
+  },
+  {
+    "id": 13,
+    "name": "Test User",
+    "email": "test@test.com",
+    "role": "user",
+    "church_id": 1
+  }
+]
