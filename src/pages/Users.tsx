@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,6 +70,13 @@ export default function Users() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast({ title: "Usuário removido" });
+    },
+    onError: (err: any) => {
+      toast({ 
+        title: "Erro ao excluir", 
+        description: err.message, 
+        variant: "destructive" 
+      });
     }
   });
 
@@ -117,6 +125,9 @@ export default function Users() {
               <DialogTitle className="text-2xl font-black text-[#212351] flex items-center gap-3">
                 {editingUser ? <><Pencil className="w-6 h-6 text-blue-500" /> Editar Usuário</> : <><UserPlus className="w-6 h-6 text-blue-500" /> Cadastrar Usuário</>}
               </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Preencha as informações abaixo para {editingUser ? 'atualizar os dados do' : 'cadastrar um novo'} usuário.
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -356,9 +367,30 @@ export default function Users() {
                       <Key className="w-4 h-4" />
                     </Button>
                     {u.id !== currentUser?.id && (
-                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20" onClick={() => { if(confirm("Excluir usuário?")) deleteUserMutation.mutate(u.id); }}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="rounded-3xl p-8 border-0 shadow-2xl">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-xl font-bold text-[#212351]">Excluir Usuário?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação não pode ser desfeita. O usuário <strong>{u.name}</strong> perderá acesso ao sistema permanentemente.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className="gap-2 pt-4">
+                            <AlertDialogCancel className="rounded-xl border-gray-200">Cancelar</AlertDialogCancel>
+                            <AlertDialogAction 
+                              className="bg-destructive hover:bg-destructive/90 rounded-xl px-6"
+                              onClick={() => deleteUserMutation.mutate(u.id)}
+                            >
+                              Excluir Permanentemente
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                 </div>
               </div>

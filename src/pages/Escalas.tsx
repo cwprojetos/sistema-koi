@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { louvorEscalaApi, midiaEscalaApi } from "@/services/api";
+import { louvorEscalaApi, midiaEscalaApi, agendaApi } from "@/services/api";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const diasSemana: Record<number, string> = {
   0: "Domingo", 1: "Segunda", 2: "Terça", 3: "Quarta",
@@ -25,6 +26,14 @@ export default function Escalas() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [formCulto, setFormCulto] = useState("");
+  const [formDataDate, setFormDataDate] = useState("");
+
+  const { data: agendaData = [] } = useQuery({
+    queryKey: ['agenda'],
+    queryFn: () => agendaApi.getAll()
+  });
 
   const { data: escalasData, isError: isErrorEscalas } = useQuery({
     queryKey: ['escalas'],
@@ -193,7 +202,10 @@ export default function Escalas() {
             <Users className="w-6 h-6" /> Escalas Confirmadas
           </h2>
           {isAdmin && (
-            <Dialog open={isModalOpen} onOpenChange={(open) => { setIsModalOpen(open); if (!open) setEditingItem(null); }}>
+            <Dialog open={isModalOpen} onOpenChange={(open) => { 
+                setIsModalOpen(open); 
+                if (!open) { setEditingItem(null); setFormCulto(""); setFormDataDate(""); } 
+            }}>
               <DialogTrigger asChild>
                 <Button className="bg-indigo-600 hover:bg-indigo-700 h-11 px-6 rounded-xl font-bold shadow-lg shadow-indigo-600/20">
                   <Plus className="w-5 h-5 mr-2" /> NOVA ESCALA
@@ -204,13 +216,36 @@ export default function Escalas() {
                     <DialogTitle className="text-2xl font-bold text-indigo-950">Gerenciar Escala</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
+                    <div className="md:col-span-2 space-y-2 mb-2 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+                      <Label className="font-bold flex items-center gap-2 text-indigo-700">
+                        <Calendar className="w-4 h-4" /> 
+                        Preencher com Evento da Agenda
+                      </Label>
+                      <Select onValueChange={(val) => {
+                        const item = agendaData.find((a: any) => a.id.toString() === val);
+                        if (item) {
+                          setFormCulto(item.titulo);
+                          setFormDataDate(item.data ? item.data.split('T')[0] : '');
+                        }
+                      }}>
+                        <SelectTrigger className="bg-white border-indigo-200"><SelectValue placeholder="Selecione um evento da agenda (opcional)..." /></SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {agendaData.map((item: any) => (
+                            <SelectItem key={item.id} value={item.id.toString()}>
+                              {formatDate(item.data).label} - {item.titulo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="space-y-2">
                        <Label className="font-bold">Nome do Culto</Label>
-                       <Input name="culto" defaultValue={editingItem?.culto} required className="h-11 border-indigo-100" />
+                       <Input name="culto" value={formCulto} onChange={e => setFormCulto(e.target.value)} required className="h-11 border-indigo-100" />
                     </div>
                     <div className="space-y-2">
                        <Label className="font-bold">Data</Label>
-                       <Input name="data" type="date" defaultValue={editingItem?.data ? (typeof editingItem.data === 'string' ? editingItem.data.split('T')[0] : '') : ''} required className="h-11 border-indigo-100" />
+                       <Input name="data" type="date" value={formDataDate} onChange={e => setFormDataDate(e.target.value)} required className="h-11 border-indigo-100" />
                     </div>
                     <div className="space-y-2"><Label className="font-bold">Recepção</Label><Input name="recepcao" defaultValue={editingItem?.recepcao} className="h-11" /></div>
                     <div className="space-y-2"><Label className="font-bold">Louvor</Label><Input name="louvor" defaultValue={editingItem?.louvor} placeholder="Auto" className="h-11" /></div>
@@ -264,6 +299,8 @@ export default function Escalas() {
                         const cleanItem = { ...escala };
                         if (escala.isDraft) delete cleanItem.id;
                         setEditingItem(cleanItem); 
+                        setFormCulto(cleanItem.culto || "");
+                        setFormDataDate(cleanItem.data ? (typeof cleanItem.data === 'string' ? cleanItem.data.split('T')[0] : '') : '');
                         setIsModalOpen(true); 
                       }}>
                         <Pencil className="w-5 h-5" />

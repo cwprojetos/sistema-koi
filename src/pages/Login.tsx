@@ -81,7 +81,7 @@ export default function Login() {
             <div className="w-40 h-40 mb-6 flex items-center justify-center">
               <img src={config.igreja_logo} alt="Logo" className="w-full h-full object-contain drop-shadow-xl" />
             </div>
-            <h1 className="text-3xl font-black text-[#212351] tracking-tight text-center">Acesso Restrito</h1>
+            <h1 className="text-3xl font-black text-[#212351] tracking-tight text-center">Acesso aos Ministérios</h1>
             <p className="text-muted-foreground text-sm mt-2 font-medium text-center uppercase tracking-widest">KOI - CONECTADOS EM CRISTO</p>
           </div>
 
@@ -169,7 +169,7 @@ export default function Login() {
                   {isLoading ? (
                     <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
-                    "Entrar no Sistema"
+                    "Acessar"
                   )}
                 </Button>
 

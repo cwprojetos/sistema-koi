@@ -154,6 +154,11 @@ export function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end={item.url === "/"}
+                        onClick={() => {
+                          if (sidebar?.isMobile) {
+                            sidebar?.setOpenMobile?.(false);
+                          }
+                        }}
                         className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sidebar-foreground/70 transition-all hover:text-sidebar-primary-foreground hover:bg-sidebar-accent"
                         activeClassName="bg-sidebar-accent text-sidebar-primary-foreground font-medium"
                       >
@@ -240,7 +245,10 @@ export function AppSidebar() {
         )}
 
         {isSuperAdmin && (
-          <Button variant="ghost" className="w-full justify-start gap-3 text-amber-400 hover:text-amber-300" onClick={() => navigate('/admin/churches')}>
+          <Button variant="ghost" className="w-full justify-start gap-3 text-amber-400 hover:text-amber-300" onClick={() => {
+              navigate('/admin/churches');
+              if (sidebar?.isMobile) sidebar?.setOpenMobile?.(false);
+          }}>
             <ShieldCheck className="w-5 h-5" />
             {!collapsed && <span>Gestão de Igrejas</span>}
           </Button>
@@ -248,7 +256,10 @@ export function AppSidebar() {
 
         {(isAdmin || canWrite('secretaria') || canWrite('midia')) && (
           <>
-            <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => navigate('/admin/users')}>
+            <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => {
+                navigate('/admin/users');
+                if (sidebar?.isMobile) sidebar?.setOpenMobile?.(false);
+            }}>
               <UserCog className="w-5 h-5" />
               {!collapsed && <span>Gestão de Usuários</span>}
             </Button>

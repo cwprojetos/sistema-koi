@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { membrosIgrejaApi, frequenciaMembrosApi, uploadFile } from "@/services/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { PresenceReportModal } from "@/components/PresenceReportModal";
 import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+function getGoogleDriveDirectLink(url: any) {
+    if (!url || typeof url !== 'string') return url;
+    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+        return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+    }
+    return url;
+}
 
 export default function Membros() {
     const navigate = useNavigate();
@@ -95,6 +105,10 @@ export default function Membros() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['membros_igreja'] });
             toast.success("Membro removido!");
+        },
+        onError: (err: any) => {
+            console.error("Erro ao excluir membro:", err);
+            toast.error(`Erro ao excluir: ${err.message || "Tente novamente"}`);
         }
     });
 
@@ -222,7 +236,7 @@ export default function Membros() {
                                                         <div className="flex gap-4 mb-3">
                                                             <div className="w-16 h-16 rounded-xl bg-gray-50 border border-blue-50 flex-shrink-0 flex items-center justify-center overflow-hidden">
                                                                 {m.foto_url ? (
-                                                                    <img src={m.foto_url} alt={m.nome} className="w-full h-full object-cover" />
+                                                                    <img src={getGoogleDriveDirectLink(m.foto_url)} alt={m.nome} className="w-full h-full object-cover" />
                                                                 ) : (
                                                                     <UserIcon className="w-8 h-8 text-blue-200" />
                                                                 )}
@@ -233,7 +247,31 @@ export default function Membros() {
                                                         {canEdit && (
                                                             <div className="flex gap-1">
                                                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-600 bg-blue-50/50" onClick={() => { setEditingItem(m); setSelectedFoto(m.foto_url); setIsModalOpen(true); }}><Pencil className="w-3.5 h-3.5" /></Button>
-                                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive bg-destructive/5" onClick={() => { if(confirm("Excluir membro?")) deleteMembroMutation.mutate(m.id); }}><Trash2 className="w-3.5 h-3.5" /></Button>
+                                                                
+                                                                <AlertDialog>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive bg-destructive/5">
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </Button>
+                                                                    </AlertDialogTrigger>
+                                                                    <AlertDialogContent className="rounded-2xl border-0 shadow-2xl">
+                                                                        <AlertDialogHeader>
+                                                                            <AlertDialogTitle className="text-xl font-bold text-[#212351]">Excluir Membro?</AlertDialogTitle>
+                                                                            <AlertDialogDescription>
+                                                                                Deseja realmente remover <strong>{m.nome}</strong> desta igreja? Esta ação não poderá ser desfeita.
+                                                                            </AlertDialogDescription>
+                                                                        </AlertDialogHeader>
+                                                                        <AlertDialogFooter>
+                                                                            <AlertDialogCancel className="rounded-xl border-gray-200">Cancelar</AlertDialogCancel>
+                                                                            <AlertDialogAction 
+                                                                                onClick={() => deleteMembroMutation.mutate(m.id)}
+                                                                                className="bg-destructive hover:bg-destructive/90 rounded-xl px-6"
+                                                                            >
+                                                                                Sim, Excluir Membro
+                                                                            </AlertDialogAction>
+                                                                        </AlertDialogFooter>
+                                                                    </AlertDialogContent>
+                                                                </AlertDialog>
                                                             </div>
                                                         )}
                                                     </div>
@@ -407,7 +445,7 @@ export default function Membros() {
                             <div className="relative group">
                                 <div className="w-24 h-24 rounded-3xl bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-blue-400">
                                     {selectedFoto ? (
-                                        <img src={selectedFoto} alt="Preview" className="w-full h-full object-cover" />
+                                        <img src={getGoogleDriveDirectLink(selectedFoto)} alt="Preview" className="w-full h-full object-cover" />
                                     ) : (
                                         <UserIcon className="w-10 h-10 text-gray-300" />
                                     )}
@@ -436,6 +474,15 @@ export default function Membros() {
                                 </label>
                             </div>
                             {isUploading && <p className="text-[10px] font-bold text-blue-600 animate-pulse uppercase">Enviando foto...</p>}
+                            <div className="w-full max-w-[200px] mt-1 space-y-1 text-center">
+                                <Label className="text-[10px] text-muted-foreground uppercase font-bold">Ou URL (Ex: Google Drive)</Label>
+                                <Input 
+                                    placeholder="Cole um link..." 
+                                    value={selectedFoto || ''}
+                                    onChange={(e) => setSelectedFoto(e.target.value)}
+                                    className="h-8 text-xs text-center border-dashed border-gray-300"
+                                />
+                            </div>
                         </div>
 
                         <div className="space-y-2">

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '@/services/api';
 
-type UserRole = 'super_admin' | 'admin_igreja' | 'admin' | 'user' | 'visitante' | 'guest';
+type UserRole = 'super_admin' | 'admin_igreja' | 'user' | 'visitante' | 'guest';
 type PermissionLevel = 'none' | 'read' | 'write';
 
 interface User {
@@ -81,12 +81,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const getPermission = (module: string): PermissionLevel => {
-    if (user?.role === 'super_admin' || user?.role === 'admin_igreja' || user?.role === 'admin') return 'write';
+    if (user?.role === 'super_admin') return 'write';
     return permissions[module] || 'none';
   };
 
   const canRead = (module: string) => {
-    if (user?.role === 'super_admin' || user?.role === 'admin_igreja' || user?.role === 'admin') return true;
+    if (user?.role === 'super_admin' || user?.role === 'admin_igreja') return true;
     if (user?.role === 'visitante') {
       const allowed = ['agenda', 'oracao', 'escola_biblica', 'pastor', 'projetos', 'estudos'];
       return allowed.includes(module);

@@ -22,10 +22,21 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
+function getGoogleDriveDirectLink(url: any) {
+    if (!url || typeof url !== 'string') return url;
+    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+        // Usando o endpoint de thumbnail que é o único método 100% confiável hoje para <img> 
+        return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+    }
+    return url;
+}
+
 export default function Projetos() {
     const { role, canWrite } = useAuth();
     const queryClient = useQueryClient();
-    const [activeTab, setActiveTab] = useState("reunioes");
+    const isVisitor = role === 'visitante' || role === 'guest';
+    const [activeTab, setActiveTab] = useState(isVisitor ? "projetos" : "reunioes");
     const [editingItem, setEditingItem] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedArrecadacaoId, setSelectedArrecadacaoId] = useState<number | null>(null);
@@ -88,22 +99,15 @@ export default function Projetos() {
         }
     });
 
-    const dr = useMutation({
-        mutationFn: (id: number) => projetosReunioesApi.delete(id),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["projetos_reunioes"] }); toast.success("Excluído!"); }
+    const useDeleteMutation = (api: any, key: string) => useMutation({
+        mutationFn: (id: number) => api.delete(id),
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: [key] }); toast.success("Excluído!"); }
     });
-    const dp = useMutation({
-        mutationFn: (id: number) => projetosNovosApi.delete(id),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["projetos_novos"] }); toast.success("Excluído!"); }
-    });
-    const da = useMutation({
-        mutationFn: (id: number) => projetosArrecadacoesApi.delete(id),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["projetos_arrecadacoes"] }); toast.success("Excluído!"); }
-    });
-    const di = useMutation({
-        mutationFn: (id: number) => arrecadacaoItensApi.delete(id),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["arrecadacao_itens"] }); toast.success("Excluído!"); }
-    });
+
+    const dr = useDeleteMutation(projetosReunioesApi, "projetos_reunioes");
+    const dp = useDeleteMutation(projetosNovosApi, "projetos_novos");
+    const da = useDeleteMutation(projetosArrecadacoesApi, "projetos_arrecadacoes");
+    const di = useDeleteMutation(arrecadacaoItensApi, "arrecadacao_itens");
 
     const isAdmin = canWrite("projetos");
 
@@ -299,7 +303,7 @@ export default function Projetos() {
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <img 
-                                                    src={i.fotos} 
+                                                    src={getGoogleDriveDirectLink(i.fotos)} 
                                                     alt={i.nome} 
                                                     className="w-full h-32 object-cover rounded-lg mb-3 cursor-pointer hover:opacity-80 transition-opacity" 
                                                     title="Clique para ampliar"
@@ -310,7 +314,7 @@ export default function Projetos() {
                                                     <DialogTitle>Foto: {i.nome}</DialogTitle>
                                                 </DialogHeader>
                                                 <img 
-                                                    src={i.fotos} 
+                                                    src={getGoogleDriveDirectLink(i.fotos)} 
                                                     alt={i.nome} 
                                                     className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" 
                                                 />
@@ -459,10 +463,12 @@ export default function Projetos() {
                 <PageHeader title="Projetos e Arrecadações" subtitle="Reunioes, projetos da igreja e campanhas de arrecadação." />
     
                 <Tabs defaultValue="reunioes" value={activeTab} className="w-full" onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-3 mb-8 h-12">
-                    <TabsTrigger value="reunioes" className="gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                        <Video className="w-4 h-4" /> Reuniões
-                    </TabsTrigger>
+                <TabsList className={`grid w-full mb-8 h-12 ${isVisitor ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                    {!isVisitor && (
+                        <TabsTrigger value="reunioes" className="gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                            <Video className="w-4 h-4" /> Reuniões
+                        </TabsTrigger>
+                    )}
                     <TabsTrigger value="projetos" className="gap-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
                         <Rocket className="w-4 h-4" /> Projetos
                     </TabsTrigger>
@@ -472,11 +478,13 @@ export default function Projetos() {
                 </TabsList>
 
                 <AnimatePresence mode="wait">
-                    <TabsContent value="reunioes">
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                            {renderReunioes()}
-                        </motion.div>
-                    </TabsContent>
+                    {!isVisitor && (
+                        <TabsContent value="reunioes">
+                            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                                {renderReunioes()}
+                            </motion.div>
+                        </TabsContent>
+                    )}
                     <TabsContent value="projetos">
                         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                             {renderProjetos()}
@@ -651,9 +659,21 @@ export default function Projetos() {
                                     <Label>Foto do Item</Label>
                                     <div className="flex items-center gap-4">
                                         {editingItem?.fotos && (
-                                            <img src={editingItem.fotos} alt="Preview" className="w-20 h-20 object-cover rounded-md border" />
+                                            <img src={getGoogleDriveDirectLink(editingItem.fotos)} alt="Preview" className="w-20 h-20 object-cover rounded-md border" />
                                         )}
-                                        <div className="relative flex-1">
+                                        <div className="relative flex-1 flex flex-col gap-2">
+                                            <Input 
+                                                placeholder="Cole o link do Google Drive (ou outra URL de imagem)"
+                                                value={editingItem?.fotos || ''}
+                                                onChange={(e) => setEditingItem({...editingItem, fotos: e.target.value})}
+                                            />
+                                            
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-px bg-muted flex-1" />
+                                                <span className="text-[10px] uppercase text-muted-foreground font-bold text-center">OU FAÇA UPLOAD</span>
+                                                <div className="h-px bg-muted flex-1" />
+                                            </div>
+
                                             <Input
                                                 type="file"
                                                 accept="image/*"
@@ -680,11 +700,11 @@ export default function Projetos() {
                                                 className="flex items-center justify-center w-full h-10 border-2 border-dashed border-muted-foreground/25 rounded-md cursor-pointer hover:bg-muted/50 transition-colors gap-2 text-sm text-muted-foreground"
                                             >
                                                 {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                                                {editingItem?.fotos ? "Alterar Foto" : "Carregar Foto"}
+                                                {editingItem?.fotos ? "Substituir foto pelo arquivo" : "Carregar Foto"}
                                             </Label>
                                         </div>
                                     </div>
-                                    <input type="hidden" name="fotos" value={editingItem?.fotos || ''} />
+                                    <input type="hidden" name="fotos" value={getGoogleDriveDirectLink(editingItem?.fotos) || ''} />
                                 </div>
                             </>
                         )}

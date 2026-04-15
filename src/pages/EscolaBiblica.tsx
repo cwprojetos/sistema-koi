@@ -14,12 +14,14 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const tipoIcons: Record<string, React.ElementType> = {
   video: Video,
+  video_drive: Video,
   comunicado: MessageSquare,
   apresentacao: Video,
   documento: FileText
 };
 const tipoLabels: Record<string, string> = {
   video: "Vídeo (YouTube)",
+  video_drive: "Vídeo (Google Drive)",
   apresentacao: "Vídeo Gravado",
   comunicado: "Estudo (PDF/Office)",
   documento: "Documento"
@@ -30,6 +32,15 @@ function getYoutubeID(url: any) {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
   const match = url.match(regExp);
   return (match && match[2] && match[2].length === 11) ? match[2] : null;
+}
+
+function getGoogleDriveEmbedUrl(url: any) {
+  if (!url || typeof url !== 'string') return null;
+  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    return `https://drive.google.com/file/d/${match[1]}/preview`;
+  }
+  return null;
 }
 
 const formatDate = (dateStr: string) => {
@@ -106,6 +117,16 @@ export default function EscolaBiblica() {
   const [fullscreenDoc, setFullscreenDoc] = useState<any>(null);
   const [novaPergunta, setNovaPergunta] = useState("");
   const [nomeAutor, setNomeAutor] = useState("");
+
+  useEffect(() => {
+    if (getYoutubeID(videoUrl)) {
+      setSelectedTipo("video");
+      setLocalVideoFile(null);
+    } else if (getGoogleDriveEmbedUrl(videoUrl)) {
+      setSelectedTipo("video_drive");
+      setLocalVideoFile(null);
+    }
+  }, [videoUrl]);
 
   const { data: contents = [] } = useQuery({ queryKey: ['escola_biblica_conteudo'], queryFn: () => escolaBiblicaConteudoApi.getAll() });
   const { data: perguntas = [] } = useQuery({ queryKey: ['escola_biblica_perguntas'], queryFn: () => escolaBiblicaPerguntasApi.getAll() });
@@ -298,6 +319,7 @@ export default function EscolaBiblica() {
                         <SelectTrigger className="border-[#212351]/20"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="video">Vídeo (YouTube)</SelectItem>
+                          <SelectItem value="video_drive">Vídeo (Google Drive)</SelectItem>
                           <SelectItem value="apresentacao">Vídeo Gravado</SelectItem>
                           <SelectItem value="comunicado">Estudo (PDF, Word, etc.)</SelectItem>
                         </SelectContent>
@@ -306,7 +328,7 @@ export default function EscolaBiblica() {
                   </div>
                   <div className="space-y-4 border-2 border-dashed border-[#212351]/10 rounded-xl p-4 bg-[#212351]/5">
                     <div className="space-y-2">
-                      <Label className="flex items-center gap-2"><Youtube className="w-4 h-4 text-[#FF0000]" /> Link do YouTube</Label>
+                      <Label className="flex items-center gap-2"><Youtube className="w-4 h-4 text-[#FF0000]" /> Link do Vídeo (YouTube ou Google Drive)</Label>
                       <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://..." className="border-[#212351]/20" disabled={selectedTipo === 'comunicado'} />
                     </div>
                     <div className="relative flex items-center gap-4">
@@ -373,6 +395,8 @@ export default function EscolaBiblica() {
               <div className="aspect-video bg-black relative overflow-hidden">
                 {videoId ? (
                   <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${videoId}?rel=0`} title={c.titulo} className="absolute inset-0 w-full h-full" frameBorder="0" allowFullScreen></iframe>
+                ) : getGoogleDriveEmbedUrl(c.url_video || c.url) ? (
+                  <iframe width="100%" height="100%" src={getGoogleDriveEmbedUrl(c.url_video || c.url) || ""} title={c.titulo} className="absolute inset-0 w-full h-full" frameBorder="0" allowFullScreen></iframe>
                 ) : c.tipo === 'apresentacao' && hasLocalVideo ? (
                   <video src={c.url_arquivo} controls className="w-full h-full bg-black" />
                 ) : c.tipo === 'comunicado' && hasLocalVideo ? (

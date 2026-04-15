@@ -88,8 +88,8 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html, body {
+    @apply bg-background text-foreground overflow-x-hidden w-full max-w-[100vw];
     font-family: 'Open Sans', system-ui, sans-serif;
     font-size: 1.1rem;
     /* Aumentando o tamanho padrão */

@@ -376,33 +376,65 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
 });
 
 app.delete('/api/users/:id', authenticateToken, async (req, res) => {
-    const canManage = req.user.role === 'super_admin' || req.user.role === 'admin_igreja' || (req.user.permissions && req.user.permissions.secretaria === 'write');
-    if (!canManage) return res.status(403).json({ error: 'Permission denied' });
-    
-    const { id } = req.params;
-    const [existing] = await pool.query('SELECT church_id FROM users WHERE id = ?', [id]);
-    if (existing.length === 0) return res.status(404).json({ error: 'User not found' });
-    
-    if (req.user.role !== 'super_admin' && existing[0].church_id !== req.user.church_id) {
-        return res.status(403).json({ error: 'Permission denied' });
-    }
+    try {
+        const canManage = req.user.role === 'super_admin' || req.user.role === 'admin_igreja' || (req.user.permissions && req.user.permissions.secretaria === 'write');
+        if (!canManage) return res.status(403).json({ error: 'Permission denied' });
+        
+        const { id } = req.params;
+        const [existing] = await pool.query('SELECT church_id FROM users WHERE id = ?', [id]);
+        if (existing.length === 0) return res.status(404).json({ error: 'User not found' });
+        
+        if (req.user.role !== 'super_admin' && existing[0].church_id !== req.user.church_id) {
+            return res.status(403).json({ error: 'Permission denied' });
+        }
 
-    await pool.query('DELETE FROM users WHERE id = ?', [id]);
-    res.json({ success: true });
+        await pool.query('DELETE FROM users WHERE id = ?', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting user:', err);
+        res.status(500).json({ error: 'Falha ao excluir usuário', details: err.message });
+    }
 });
 
 // --- PERMISSIONS ROUTES ---
 app.get('/api/permissions/:userId', authenticateToken, async (req, res) => {
-    const [rows] = await pool.query('SELECT * FROM user_permissions WHERE user_id = ?', [req.params.userId]);
-    res.json(rows);
+    try {
+        const { userId } = req.params;
+        
+        // Authorization: super_admin can see all, admin_igreja/secretaria only same church
+        if (req.user.role !== 'super_admin') {
+            const [targetUser] = await pool.query('SELECT church_id FROM users WHERE id = ?', [userId]);
+            if (targetUser.length === 0) return res.status(404).json({ error: 'User not found' });
+            if (targetUser[0].church_id !== req.user.church_id) {
+                return res.status(403).json({ error: 'Permission denied - User from another church' });
+            }
+        }
+
+        const [rows] = await pool.query('SELECT * FROM user_permissions WHERE user_id = ?', [userId]);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.put('/api/permissions/:userId', authenticateToken, async (req, res) => {
-    if (req.user.role === 'user') return res.status(403).json({ error: 'Permission denied' });
-    const { permissions } = req.body; // Array of { module_name, permission_level }
     try {
+        const { userId } = req.params;
+        const { permissions } = req.body; // Array of { module_name, permission_level }
+
+        // Authorization check
+        if (req.user.role === 'user') return res.status(403).json({ error: 'Permission denied' });
+        
+        if (req.user.role !== 'super_admin') {
+            const [targetUser] = await pool.query('SELECT church_id FROM users WHERE id = ?', [userId]);
+            if (targetUser.length === 0) return res.status(404).json({ error: 'User not found' });
+            if (targetUser[0].church_id !== req.user.church_id) {
+                return res.status(403).json({ error: 'Permission denied - User from another church' });
+            }
+        }
+
         for (const p of permissions) {
-            await pool.query('INSERT INTO user_permissions (user_id, module_name, permission_level) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE permission_level = ?', [req.params.userId, p.module_name, p.permission_level, p.permission_level]);
+            await pool.query('INSERT INTO user_permissions (user_id, module_name, permission_level) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE permission_level = ?', [userId, p.module_name, p.permission_level, p.permission_level]);
         }
         res.json({ success: true });
     } catch (err) {
@@ -473,7 +505,11 @@ const createCrudRoutes = (tableName, moduleName, orderField = 'id', postAuthLeve
                 params.push(req.user.church_id);
             }
 
-            await pool.query(query, params);
+            const [result] = await pool.query(query, params);
+            console.log(`DELETE SUCCESS: table=${tableName}, id=${id}, affectedRows=${result.affectedRows}`);
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: 'Registro não encontrado ou você não tem permissão para excluí-lo' });
+            }
             res.json({ success: true });
         } catch (err) {
             console.error(`ERROR deleting ${tableName}:`, err);
@@ -549,10 +585,14 @@ app.post('/api/projetos_novos/:id/arrecadacao', authenticateToken, authorize('pr
         await connection.beginTransaction();
         const finalChurchId = req.user.role === 'super_admin' ? (req.body.church_id || 1) : req.user.church_id;
 
-        // 1. Get current valor_arrecadado
-        const [projects] = await connection.query('SELECT valor_arrecadado FROM projetos_novos WHERE id = ?', [id]);
+        // 1. Get current valor_arrecadado and check church isolation
+        const [projects] = await connection.query('SELECT valor_arrecadado, church_id FROM projetos_novos WHERE id = ?', [id]);
         if (projects.length === 0) throw new Error('Projeto não encontrado');
         
+        if (req.user.role !== 'super_admin' && projects[0].church_id !== req.user.church_id) {
+            throw new Error('Permission denied - Project from another church');
+        }
+
         const currentArrecadado = parseFloat(projects[0].valor_arrecadado || 0);
         const newArrecadado = currentArrecadado + parseFloat(valor);
 
@@ -594,7 +634,14 @@ app.post('/api/arrecadacao_itens/:id/venda', authenticateToken, authorize('proje
         await connection.beginTransaction();
         const finalChurchId = req.user.role === 'super_admin' ? (req.body.church_id || 1) : req.user.church_id;
 
-        // 1. Update item status
+        // 1. Update item status and check church isolation
+        const [items] = await connection.query('SELECT church_id FROM arrecadacao_itens WHERE id = ?', [id]);
+        if (items.length === 0) throw new Error('Item não encontrado');
+
+        if (req.user.role !== 'super_admin' && items[0].church_id !== req.user.church_id) {
+            throw new Error('Permission denied - Item from another church');
+        }
+
         await connection.query('UPDATE arrecadacao_itens SET status = "vendido", forma_pagamento = ? WHERE id = ?', [forma_pagamento, id]);
 
         // 2. Create financial receipt
@@ -703,8 +750,8 @@ app.post('/api/upload', authenticateToken, upload.single('file'), async (req, re
 });
 
 // Test/Info Route
-app.get('/api/me', authenticateToken, (req, res) => {
-    res.json(req.user);
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date() });
 });
 
 app.listen(port, () => {

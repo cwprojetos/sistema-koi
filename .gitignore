@@ -9,15 +9,13 @@ lerna-debug.log*
 
 node_modules
 dist
-dist-electron
 dist-ssr
+dist-electron
 *.local
 .env
-.env.*
-! .env.example
-uploads/
-*.sqlite
-/tmp/
+tmp/
+scratch/
+server/uploads/
 
 # Editor directories and files
 .vscode/*
@@ -29,12 +27,3 @@ uploads/
 *.njsproj
 *.sln
 *.sw?
-node_modules
-
-.env
-.env.*
-server/uploads
-dist-electron
-tmp
-*.rar
-*.zip

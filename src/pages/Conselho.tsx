@@ -3,6 +3,7 @@ import { Users, BookOpen, Calendar, Plus, Pencil, Trash2, Printer, Loader2 } fro
 import { PageHeader } from "@/components/PageHeader";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -104,13 +105,13 @@ export default function Conselho() {
     };
 
     const deleteParticipante = async (id: number) => {
-        if (!confirm("Excluir participante?")) return;
         try {
             await conselhoParticipantesApi.delete(id);
             setParticipantes(prev => prev.filter(p => p.id !== id));
             toast.success("Participante removido!");
         } catch (err) {
-            toast.error("Erro ao excluir participante.");
+            console.error("Erro ao excluir participante:", err);
+            toast.error("Erro ao excluir participante. Verifique se há reuniões vinculadas.");
         }
     };
 
@@ -138,12 +139,12 @@ export default function Conselho() {
     };
 
     const deletePlanejamento = async (id: number) => {
-        if (!confirm("Excluir planejamento?")) return;
         try {
             await conselhoPlanejamentosApi.delete(id);
             setPlanejamentos(prev => prev.filter(p => p.id !== id));
             toast.success("Planejamento removido!");
         } catch (err) {
+            console.error("Erro ao excluir planejamento:", err);
             toast.error("Erro ao excluir planejamento.");
         }
     };
@@ -190,12 +191,12 @@ export default function Conselho() {
     };
 
     const deleteReuniao = async (id: number) => {
-        if (!confirm("Excluir reunião?")) return;
         try {
             await conselhoReunioesApi.delete(id);
             setReunioes(prev => prev.filter(r => r.id !== id));
             toast.success("Reunião removida!");
         } catch (err) {
+            console.error("Erro ao excluir reunião:", err);
             toast.error("Erro ao excluir reunião.");
         }
     };
@@ -374,9 +375,28 @@ export default function Conselho() {
                                         <Button variant="outline" size="icon" className="h-8 w-8 text-indigo-600 border-indigo-100 hover:bg-indigo-50" onClick={() => { setEditingParticipante(p); setIsParticipanteModalOpen(true); }}>
                                             <Pencil className="w-4 h-4" />
                                         </Button>
-                                        <Button variant="outline" size="icon" className="h-8 w-8 text-destructive border-red-50 hover:bg-destructive/10" onClick={() => deleteParticipante(p.id)}>
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                        
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="outline" size="icon" className="h-8 w-8 text-destructive border-red-50 hover:bg-destructive/10">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Excluir Participante?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Deseja realmente remover {p.nome} do conselho?
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => deleteParticipante(p.id)} className="bg-destructive hover:bg-destructive/90">
+                                                        Confirmar Exclusão
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </div>
                                 )}
                             </div>
@@ -449,9 +469,28 @@ export default function Conselho() {
                                         <Button variant="outline" size="icon" className="h-10 w-10 text-emerald-600 border-emerald-100 hover:bg-emerald-50" onClick={() => { setEditingPlanejamento(p); setIsPlanejamentoModalOpen(true); }}>
                                             <Pencil className="w-5 h-5" />
                                         </Button>
-                                        <Button variant="outline" size="icon" className="h-10 w-10 text-destructive border-red-50 hover:bg-destructive/10" onClick={() => deletePlanejamento(p.id)}>
-                                            <Trash2 className="w-5 h-5" />
-                                        </Button>
+
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="outline" size="icon" className="h-10 w-10 text-destructive border-red-50 hover:bg-destructive/10">
+                                                    <Trash2 className="w-5 h-5" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Excluir Planejamento?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Deseja remover a diretriz: {p.titulo}?
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => deletePlanejamento(p.id)} className="bg-destructive hover:bg-destructive/90">
+                                                        Confirmar Exclusão
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </div>
                                 )}
                             </div>
@@ -637,9 +676,28 @@ export default function Conselho() {
                                         }}>
                                             <Pencil className="w-5 h-5" />
                                         </Button>
-                                        <Button variant="outline" size="icon" className="h-10 w-10 text-destructive border-red-50 hover:bg-destructive/10" onClick={() => deleteReuniao(r.id)}>
-                                            <Trash2 className="w-5 h-5" />
-                                        </Button>
+
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="outline" size="icon" className="h-10 w-10 text-destructive border-red-50 hover:bg-destructive/10">
+                                                    <Trash2 className="w-5 h-5" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Excluir Ata de Reunião?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Deseja remover esta ata do dia {new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR')}?
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => deleteReuniao(r.id)} className="bg-destructive hover:bg-destructive/90">
+                                                        Confirmar Exclusão
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </div>
                                 )}
                             </motion.div>

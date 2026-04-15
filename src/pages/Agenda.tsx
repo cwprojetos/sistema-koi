@@ -100,15 +100,26 @@ export default function Agenda() {
     }
   };
 
-  const filteredAgenda = (agenda || []).filter((item: any) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      item.titulo?.toLowerCase().includes(searchLower) ||
-      item.pregador?.toLowerCase().includes(searchLower) ||
-      item.tema?.toLowerCase().includes(searchLower) ||
-      formatDate(item.data).toLowerCase().includes(searchLower)
-    );
-  });
+  const filteredAgenda = (agenda || [])
+    .filter((item: any) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        item.titulo?.toLowerCase().includes(searchLower) ||
+        item.pregador?.toLowerCase().includes(searchLower) ||
+        item.tema?.toLowerCase().includes(searchLower) ||
+        formatDate(item.data).toLowerCase().includes(searchLower)
+      );
+    })
+    .sort((a: any, b: any) => {
+      const dateA = a.data ? new Date(a.data.split('T')[0]).getTime() : 0;
+      const dateB = b.data ? new Date(b.data.split('T')[0]).getTime() : 0;
+      
+      if (dateA !== dateB) return dateA - dateB;
+      
+      const timeA = a.horario || "";
+      const timeB = b.horario || "";
+      return timeA.localeCompare(timeB);
+    });
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">

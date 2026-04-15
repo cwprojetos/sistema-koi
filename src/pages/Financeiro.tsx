@@ -146,17 +146,17 @@ export default function Financeiro() {
     return (ym.year < selectedYear) || (ym.year === selectedYear && ym.month < selectedMonth);
   };
 
-  const totalAberto = contas.filter((c: any) => c.status !== 'pago').reduce((sum: number, c: any) => sum + parseFloat(c.valor || 0), 0);
+  const totalAberto = contas.filter((c: any) => c.status !== 'pago').reduce((sum: number, c: any) => sum + parseFloat(c.valor), 0);
 
   // Recibos do mês selecionado
   const recibosMes = recibos.filter((r: any) => isSelectedMonth(r.data));
-  const totalEntradas = recibosMes.filter((r: any) => r.tipo === 'entrada').reduce((sum: number, r: any) => sum + parseFloat(r.valor || 0), 0);
-  const totalSaidas = recibosMes.filter((r: any) => r.tipo === 'saida').reduce((sum: number, r: any) => sum + parseFloat(r.valor || 0), 0);
+  const totalEntradas = recibosMes.filter((r: any) => r.tipo === 'entrada').reduce((sum: number, r: any) => sum + parseFloat(r.valor), 0);
+  const totalSaidas = recibosMes.filter((r: any) => r.tipo === 'saida').reduce((sum: number, r: any) => sum + parseFloat(r.valor), 0);
 
   // Saldo residual dos meses anteriores
   const recibosAnteriores = recibos.filter((r: any) => isBeforeSelectedMonth(r.data));
-  const entradasAnteriores = recibosAnteriores.filter((r: any) => r.tipo === 'entrada').reduce((sum: number, r: any) => sum + parseFloat(r.valor || 0), 0);
-  const saidasAnteriores = recibosAnteriores.filter((r: any) => r.tipo === 'saida').reduce((sum: number, r: any) => sum + parseFloat(r.valor || 0), 0);
+  const entradasAnteriores = recibosAnteriores.filter((r: any) => r.tipo === 'entrada').reduce((sum: number, r: any) => sum + parseFloat(r.valor), 0);
+  const saidasAnteriores = recibosAnteriores.filter((r: any) => r.tipo === 'saida').reduce((sum: number, r: any) => sum + parseFloat(r.valor), 0);
   const saldoAnterior = entradasAnteriores - saidasAnteriores;
 
   const saldoGeral = saldoAnterior + totalEntradas - totalSaidas;
@@ -211,7 +211,7 @@ export default function Financeiro() {
   const processPieData = (items: any[], colors: string[], tipo: 'entrada' | 'saida') => {
     const grouped = items.reduce((acc: any, item: any) => {
       const cat = tipo === 'entrada' ? getCategoriaEntrada(item.descricao) : getCategoriaSaida(item.descricao);
-      acc[cat] = (acc[cat] || 0) + parseFloat(item.valor || 0);
+      acc[cat] = (acc[cat] || 0) + parseFloat(item.valor);
       return acc;
     }, {});
     return Object.entries(grouped)

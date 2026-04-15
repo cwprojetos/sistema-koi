@@ -22,6 +22,7 @@ const tipoIcons: Record<string, React.ElementType> = {
 };
 const tipoLabels: Record<string, string> = {
   video: "Vídeo (YouTube)",
+  video_drive: "Vídeo (Google Drive)",
   apresentacao: "Vídeo Gravado",
   comunicado: "Comunicado (PDF/Office)",
   documento: "Documento"
@@ -32,6 +33,15 @@ function getYoutubeID(url: any) {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
   const match = url.match(regExp);
   return (match && match[2] && match[2].length === 11) ? match[2] : null;
+}
+
+function getGoogleDriveEmbedUrl(url: any) {
+  if (!url || typeof url !== 'string') return null;
+  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    return `https://drive.google.com/file/d/${match[1]}/preview`;
+  }
+  return null;
 }
 
 const formatDate = (dateStr: string) => {
@@ -198,6 +208,9 @@ export default function PastorCorner() {
     if (getYoutubeID(videoUrl)) {
       setSelectedTipo("video");
       setLocalVideoFile(null); // Clear file if youtube link is entered
+    } else if (getGoogleDriveEmbedUrl(videoUrl)) {
+      setSelectedTipo("video_drive");
+      setLocalVideoFile(null);
     }
   }, [videoUrl]);
 
@@ -238,6 +251,7 @@ export default function PastorCorner() {
                         <SelectTrigger className="border-[#212351]/20"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="video">Vídeo / Pregação (YouTube)</SelectItem>
+                          <SelectItem value="video_drive">Vídeo (Google Drive)</SelectItem>
                           <SelectItem value="apresentacao">Vídeo Gravado (Estudo)</SelectItem>
                           <SelectItem value="comunicado">Comunicado (PDF, Word, etc.)</SelectItem>
                         </SelectContent>
@@ -249,12 +263,12 @@ export default function PastorCorner() {
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2">
                         <Youtube className="w-4 h-4 text-[#FF0000]" />
-                        Link do YouTube (Para Pregações)
+                        Link do Vídeo (YouTube ou Google Drive)
                       </Label>
                       <Input
                         value={videoUrl}
                         onChange={(e) => setVideoUrl(e.target.value)}
-                        placeholder="https://www.youtube.com/watch?v=..."
+                        placeholder="https://www.youtube.com/... ou https://drive.google.com/..."
                         className="border-[#212351]/20"
                         disabled={selectedTipo === 'comunicado'}
                       />
@@ -294,19 +308,28 @@ export default function PastorCorner() {
                     </div>
                   </div>
 
-                  {(getYoutubeID(videoUrl) || localVideoFile) && (
+                  {(getYoutubeID(videoUrl) || getGoogleDriveEmbedUrl(videoUrl) || localVideoFile) && (
                     <div className="rounded-lg overflow-hidden border-2 border-[#212351] bg-black aspect-video shadow-lg relative group">
-                      {localVideoFile && !getYoutubeID(videoUrl) ? (
+                      {localVideoFile && !getYoutubeID(videoUrl) && !getGoogleDriveEmbedUrl(videoUrl) ? (
                         selectedTipo === 'comunicado' ? (
                           <DocumentViewer url={localVideoFile} title="Preview" />
                         ) : (
                           <video src={localVideoFile} controls className="w-full h-full bg-black" />
                         )
-                      ) : (
+                      ) : getYoutubeID(videoUrl) ? (
                         <iframe
                           width="100%"
                           height="100%"
                           src={`https://www.youtube.com/embed/${getYoutubeID(videoUrl)}?rel=0`}
+                          frameBorder="0"
+                          allowFullScreen
+                          className="w-full h-full"
+                        ></iframe>
+                      ) : (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={getGoogleDriveEmbedUrl(videoUrl) || ""}
                           frameBorder="0"
                           allowFullScreen
                           className="w-full h-full"
@@ -365,6 +388,16 @@ export default function PastorCorner() {
                     className="absolute inset-0 w-full h-full"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                ) : getGoogleDriveEmbedUrl(c.url_video || c.url) ? (
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={getGoogleDriveEmbedUrl(c.url_video || c.url) || ""}
+                    title={c.titulo}
+                    className="absolute inset-0 w-full h-full"
+                    frameBorder="0"
                     allowFullScreen
                   ></iframe>
                 ) : c.tipo === 'apresentacao' && hasLocalVideo ? (
