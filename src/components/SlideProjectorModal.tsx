@@ -1,5 +1,14 @@
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { projecoesApi, uploadFile, configApi } from "@/services/api"; // Note: configApi might need to be added or used via fetch
+import { extractYoutubeId } from "@/lib/youtube";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Play, FileText, Upload, ChevronLeft, ChevronRight, X, Maximize, Save, ListMusic, Trash2, Pencil, CalendarCheck, CheckCircle2, PlusCircle, ArrowUp, ArrowDown, Video, Youtube, Palette, Type } from "lucide-react";
+import { projecoesApi, uploadFile } from "@/services/api";
+import { toast } from "sonner";
 
 interface SavedProjection {
     id: any; // Allow number or string from API
