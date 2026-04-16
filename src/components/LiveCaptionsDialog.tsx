@@ -67,12 +67,15 @@ export function LiveCaptionsDialog() {
         };
 
         recognition.onerror = (event: any) => {
-            console.error("Speech Recognition Error:", event.error);
+            console.error("Speech Recognition Error:", event.error, event.message || "");
             if (event.error === 'not-allowed') {
-                toast.error("Permissão de microfone negada ou bloqueada pelo sistema.");
-            }
-            if (event.error === 'network') {
+                toast.error("Permissão de microfone negada ou bloqueada pelo sistema. Verifique as configurações do navegador.");
+            } else if (event.error === 'network') {
                 toast.error("Erro de rede no reconhecimento de voz.");
+            } else if (event.error === 'no-speech') {
+                console.warn("No speech detected.");
+            } else {
+                toast.error(`Erro no reconhecimento: ${event.error}`);
             }
         };
 
@@ -113,56 +116,74 @@ export function LiveCaptionsDialog() {
         try {
             toast.info("Acessando dispositivos...");
             
-            let stream: MediaStream;
+            let stream: MediaStream | null = null;
             try {
-                // We ONLY need video from getUserMedia. 
-                // SpeechRecognition will handle its own audio capture.
-                // Requesting audio here often conflicts with SpeechRecognition on many browsers.
+                // Request BOTH audio and video. 
+                // Requesting audio here ensures the browser prompts for microphone permission, 
+                // which SpeechRecognition needs. Using simple 'true' for video for maximum compatibility.
                 stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: 1280, height: 720 },
-                    audio: false 
+                    video: true,
+                    audio: true 
                 });
                 setIsCameraActive(true);
-            } catch (videoError: any) {
-                console.warn("Could not access camera, running in audio-only mode for recognition", videoError);
-                // If camera fails, we don't need to request audio here either, 
-                // because SpeechRecognition will request it anyway.
-                setIsCameraActive(false);
-                stream = new MediaStream(); // Dummy stream for logic consistency
-                toast.warning("Iniciando apenas reconhecimento de voz (câmera indisponível).");
+                console.log("Camera and Microphone access granted.");
+            } catch (mediaError: any) {
+                console.warn("Could not access camera/microphone with default constraints, trying fallback", mediaError);
+                
+                // Fallback: Try just camera first (if user really wants video) then just audio
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    setIsCameraActive(false);
+                    toast.warning("Iniciando apenas com microfone (câmera indisponível).");
+                    console.log("Microphone access granted (no camera).");
+                } catch (audioError: any) {
+                    console.error("Critical: Microphone access denied", audioError);
+                    toast.error("Permissão de microfone é obrigatória para as legendas.");
+                    return;
+                }
             }
 
             streamRef.current = stream;
             
             // Wait for video element to be available if camera is active
-            setTimeout(async () => {
-                if (videoRef.current && stream) {
-                    videoRef.current.srcObject = stream;
-                    try { 
-                        await videoRef.current.play(); 
-                    } catch (e) { 
-                        console.error("Video play error:", e); 
+            if (isCameraActive) {
+                setTimeout(async () => {
+                    if (videoRef.current && stream) {
+                        videoRef.current.srcObject = stream;
+                        try { 
+                            await videoRef.current.play(); 
+                        } catch (e) { 
+                            console.error("Video play error:", e); 
+                        }
                     }
-                }
-            }, 100);
+                }, 100);
+            }
 
             setTranscript("");
             setInterimTranscript("");
 
             if (recognitionRef.current) {
                 try { 
+                    // To be extra safe, we can stop it first if it was partially started
+                    try { recognitionRef.current.stop(); } catch (e) {}
+                    
+                    console.log("Starting Speech Recognition...");
                     recognitionRef.current.start(); 
                     setIsListening(true);
                 } catch (e) { 
                     console.error("Recognition start error:", e);
-                    // If already started, it's fine
+                    // It might already be running, which is typically fine
+                    setIsListening(true);
                 }
+            } else {
+                console.error("Speech Recognition not initialized");
+                toast.error("Erro interno: Reconhecimento de voz não inicializado.");
             }
 
             toast.success("Monitoramento iniciado!");
         } catch (err: any) {
             console.error("Critical access error:", err);
-            toast.error("Erro ao acessar microfone/câmera: " + err.message);
+            toast.error("Erro ao iniciar sessão: " + err.message);
         }
     };
 
@@ -228,6 +249,7 @@ export function LiveCaptionsDialog() {
                     <DialogTitle className="text-xl font-black text-white flex items-center gap-2 uppercase tracking-tighter">
                         <Video className="w-6 h-6 text-accent" /> ACESSIBILIDADE - LEGENDA AO VIVO
                     </DialogTitle>
+                    <div className="sr-only">Visualização com legendas automáticas para acessibilidade.</div>
                 </DialogHeader>
 
                 <div className="flex-1 relative bg-black overflow-hidden flex flex-col">
