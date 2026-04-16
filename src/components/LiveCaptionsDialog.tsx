@@ -25,6 +25,10 @@ export function LiveCaptionsDialog() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const recognitionRef = useRef<any>(null);
     const streamRef = useRef<MediaStream | null>(null);
+    // Ref to control auto-restart without stale closures
+    const shouldRestartRef = useRef(false);
+    const finalTranscriptAccRef = useRef(""); // accumulates final text across restarts
+    const lastProcessedIndexRef = useRef(0); // guards against re-processing same results on mobile
 
     // Initialize Speech Recognition once
     useEffect(() => {
@@ -40,7 +44,8 @@ export function LiveCaptionsDialog() {
 
         const recognition = new SpeechRecognition();
         recognition.lang = "pt-BR";
-        recognition.continuous = true;
+        // continuous=true causes duplicate events on Android/Safari; managed manually via onend restart
+        recognition.continuous = false;
         recognition.interimResults = true;
 
         recognition.onstart = () => {
@@ -49,20 +54,28 @@ export function LiveCaptionsDialog() {
         };
 
         recognition.onresult = (event: any) => {
-            let finalTranscript = "";
+            let newFinal = "";
             let interim = "";
 
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
+            // Start from whichever is greater: event.resultIndex or the last index we already processed.
+            // This prevents re-processing the same results when the engine restarts on mobile.
+            const startIndex = Math.max(event.resultIndex, lastProcessedIndexRef.current);
+
+            for (let i = startIndex; i < event.results.length; ++i) {
+                const result = event.results[i];
+                if (result.isFinal) {
+                    newFinal += result[0].transcript.trim() + " ";
+                    lastProcessedIndexRef.current = i + 1; // mark as processed
                 } else {
-                    interim += event.results[i][0].transcript;
+                    interim = result[0].transcript; // interim always replaces — only last partial matters
                 }
             }
 
-            if (finalTranscript) {
-                setTranscript((prev) => (prev + " " + finalTranscript).slice(-300));
+            if (newFinal.trim()) {
+                finalTranscriptAccRef.current = (finalTranscriptAccRef.current + " " + newFinal).trim().slice(-400);
+                setTranscript(finalTranscriptAccRef.current);
             }
+            // Interim always replaces (it's the current partial word/phrase)
             setInterimTranscript(interim);
         };
 
@@ -70,27 +83,35 @@ export function LiveCaptionsDialog() {
             console.error("Speech Recognition Error:", event.error, event.message || "");
             if (event.error === 'not-allowed') {
                 toast.error("Permissão de microfone negada ou bloqueada pelo sistema. Verifique as configurações do navegador.");
+                shouldRestartRef.current = false;
             } else if (event.error === 'network') {
                 toast.error("Erro de rede no reconhecimento de voz.");
             } else if (event.error === 'no-speech') {
-                console.warn("No speech detected.");
+                console.warn("No speech detected, will restart if active.");
             } else {
-                toast.error(`Erro no reconhecimento: ${event.error}`);
+                console.warn(`Recognition error: ${event.error}`);
             }
         };
 
         recognition.onend = () => {
-            console.log("Speech Recognition ended");
-            // If we are still supposed to be listening, restart it
-            // Use a ref check because state might be stale in this callback
-            if (recognitionRef.current && isOpen) {
-                try {
-                    console.log("Restarting Speech Recognition...");
-                    recognition.start();
-                } catch (e) {
-                    console.error("Failed to restart:", e);
-                    setIsListening(false);
-                }
+            console.log("Speech Recognition ended. shouldRestart:", shouldRestartRef.current);
+            setInterimTranscript(""); // clear any dangling interim on session end
+            // Use the ref — never reads from stale closure
+            if (shouldRestartRef.current && recognitionRef.current) {
+                // Small delay before restart avoids rapid-fire start/stop on mobile
+                setTimeout(() => {
+                    if (!shouldRestartRef.current || !recognitionRef.current) return;
+                    try {
+                        console.log("Restarting Speech Recognition...");
+                        // Reset index guard: new session, new result array
+                        lastProcessedIndexRef.current = 0;
+                        recognitionRef.current.start();
+                    } catch (e) {
+                        console.error("Failed to restart:", e);
+                        shouldRestartRef.current = false;
+                        setIsListening(false);
+                    }
+                }, 250);
             } else {
                 setIsListening(false);
             }
@@ -117,22 +138,22 @@ export function LiveCaptionsDialog() {
             toast.info("Acessando dispositivos...");
             
             let stream: MediaStream | null = null;
+            // Use a local variable to track camera state synchronously (React setState is async)
+            let cameraGranted = false;
             try {
-                // Request BOTH audio and video. 
-                // Requesting audio here ensures the browser prompts for microphone permission, 
-                // which SpeechRecognition needs. Using simple 'true' for video for maximum compatibility.
+                // Request BOTH audio and video.
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: true,
                     audio: true 
                 });
+                cameraGranted = true;
                 setIsCameraActive(true);
                 console.log("Camera and Microphone access granted.");
             } catch (mediaError: any) {
-                console.warn("Could not access camera/microphone with default constraints, trying fallback", mediaError);
-                
-                // Fallback: Try just camera first (if user really wants video) then just audio
+                console.warn("Could not access camera, trying audio-only fallback", mediaError);
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    cameraGranted = false;
                     setIsCameraActive(false);
                     toast.warning("Iniciando apenas com microfone (câmera indisponível).");
                     console.log("Microphone access granted (no camera).");
@@ -146,7 +167,8 @@ export function LiveCaptionsDialog() {
             streamRef.current = stream;
             
             // Wait for video element to be available if camera is active
-            if (isCameraActive) {
+            // NOTE: use local variable `cameraGranted`, NOT the state (which is async)
+            if (cameraGranted) {
                 setTimeout(async () => {
                     if (videoRef.current && stream) {
                         videoRef.current.srcObject = stream;
@@ -159,21 +181,29 @@ export function LiveCaptionsDialog() {
                 }, 100);
             }
 
+            // Reset transcript accumulators
             setTranscript("");
             setInterimTranscript("");
+            finalTranscriptAccRef.current = "";
+            lastProcessedIndexRef.current = 0;
 
             if (recognitionRef.current) {
-                try { 
-                    // To be extra safe, we can stop it first if it was partially started
-                    try { recognitionRef.current.stop(); } catch (e) {}
-                    
+                try {
+                    // Mark that we WANT continuous listening (used in onend to decide restart)
+                    shouldRestartRef.current = true;
                     console.log("Starting Speech Recognition...");
-                    recognitionRef.current.start(); 
+                    // Do NOT call stop() here — it triggers onend which calls start() again (double start)
+                    recognitionRef.current.start();
                     setIsListening(true);
-                } catch (e) { 
+                } catch (e: any) {
                     console.error("Recognition start error:", e);
-                    // It might already be running, which is typically fine
-                    setIsListening(true);
+                    if (e.name === 'InvalidStateError') {
+                        // Already running — that's fine, just mark as listening
+                        setIsListening(true);
+                    } else {
+                        toast.error("Erro ao iniciar reconhecimento de voz.");
+                        shouldRestartRef.current = false;
+                    }
                 }
             } else {
                 console.error("Speech Recognition not initialized");
@@ -189,6 +219,9 @@ export function LiveCaptionsDialog() {
 
     const stopSession = () => {
         console.log("Stopping session...");
+        // Signal onend NOT to restart before calling stop()
+        shouldRestartRef.current = false;
+        finalTranscriptAccRef.current = "";
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
             streamRef.current = null;
@@ -319,7 +352,7 @@ export function LiveCaptionsDialog() {
                         </div>
                     )}
 
-                    {mode === 'camera' && !isCameraActive && (
+                    {mode === 'camera' && !isListening && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6">
                             <div className="bg-[#212351] p-8 rounded-full animate-pulse border-4 border-accent">
                                 <Languages className="w-16 h-16 text-white" />
@@ -346,23 +379,28 @@ export function LiveCaptionsDialog() {
                         </div>
                     )}
 
-                    {mode === 'camera' && isCameraActive && (
+                    {/* Caption view: shown when listening — with or without camera */}
+                    {mode === 'camera' && isListening && (
                         <>
-                            {/* Video Viewport */}
-                            <video
-                                ref={videoRef}
-                                autoPlay
-                                playsInline
-                                muted={true}
-                                className="w-full h-full object-cover opacity-60"
-                            />
+                            {/* Video Viewport — only rendered when camera is available */}
+                            {isCameraActive && (
+                                <video
+                                    ref={videoRef}
+                                    autoPlay
+                                    playsInline
+                                    muted={true}
+                                    className="w-full h-full object-cover opacity-60"
+                                />
+                            )}
 
                             {/* Captions Overlay */}
                             <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent min-h-[40%] flex flex-col justify-end">
                                 <div className="max-w-4xl mx-auto w-full space-y-4">
                                     <div className="flex items-center gap-2">
                                         <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                                        <span className="text-xs font-black tracking-widest uppercase text-red-500">AO VIVO - MICROFONE</span>
+                                        <span className="text-xs font-black tracking-widest uppercase text-red-500">
+                                            AO VIVO - {isCameraActive ? 'CÂMERA + MICROFONE' : 'MICROFONE'}
+                                        </span>
                                     </div>
 
                                     <div className="space-y-2">
