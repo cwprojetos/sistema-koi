@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { extractYoutubeId } from "@/lib/youtube";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,7 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
     const [textColor, setTextColor] = useState('#ffffff');
     const [bgVideo, setBgVideo] = useState<string | null>(null);
   const [youtubeLink, setYoutubeLink] = useState<string>('');
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     useEffect(() => {
         const saved = localStorage.getItem('midia_projecoes');
@@ -300,6 +301,9 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
                         <Maximize className="w-6 h-6 text-indigo-600" /> 
                         Projetor de Letras e Slides
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Gerenciamento de projeção de letras e slides para a igreja.
+                    </DialogDescription>
                     <div className="flex flex-wrap items-center gap-4 mt-0">
                         {bgVideo ? (
                             <Button variant="ghost" size="sm" onClick={() => { setBgVideo(null); setYoutubeLink(''); }} className="h-8 px-2 text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50">
