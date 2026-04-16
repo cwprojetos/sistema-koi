@@ -89,17 +89,17 @@ export default function Midia() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto overflow-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <PageHeader title="Mídia / Marketing" subtitle="Escala e tarefas da equipe de mídia e marketing" />
 
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => setIsProjectorOpen(true)} className="gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-md">
-            <Monitor className="w-4 h-4 text-white" /> Projetor
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button size="sm" onClick={() => setIsProjectorOpen(true)} className="flex-1 sm:flex-none gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-md h-10">
+            <Monitor className="w-4 h-4 text-white" /> <span className="xs:inline">Projetor</span>
           </Button>
           {canEdit && (
-            <Button size="sm" variant="outline" onClick={() => setIsReportModalOpen(true)} className="gap-2 border-accent text-accent hover:bg-accent/10">
-              <FileText className="w-4 h-4" /> Relatório
+            <Button size="sm" variant="outline" onClick={() => setIsReportModalOpen(true)} className="flex-1 sm:flex-none gap-2 border-accent text-accent hover:bg-accent/10 h-10">
+              <FileText className="w-4 h-4" /> <span className="xs:inline">Relatório</span>
             </Button>
           )}
         </div>
@@ -108,10 +108,10 @@ export default function Midia() {
       <Tabs defaultValue="escala" className="w-full" onValueChange={(v) => setActiveTab(v as any)}>
         <TabsList className="grid w-full grid-cols-2 mb-8 h-12">
           <TabsTrigger value="escala" className="gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-            <Monitor className="w-4 h-4" /> Escala
+            <Monitor className="w-4 h-4 hidden xs:block" /> Escala
           </TabsTrigger>
           <TabsTrigger value="afazeres" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <CheckSquare className="w-4 h-4" /> Afazeres
+            <CheckSquare className="w-4 h-4 hidden xs:block" /> Afazeres
           </TabsTrigger>
         </TabsList>
 
@@ -119,10 +119,10 @@ export default function Midia() {
           <TabsContent value="escala">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3">
                   <h2 className="text-xl font-bold flex items-center gap-2 text-blue-600"><Monitor className="w-5 h-5" /> Escala</h2>
                   {canEdit && (
-                    <Button onClick={() => { setEditingItem(null); setActiveTab('escala'); setIsModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+                    <Button onClick={() => { setEditingItem(null); setActiveTab('escala'); setIsModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700 w-full xs:w-auto">
                       <Plus className="w-4 h-4 mr-2" /> Nova Escala
                     </Button>
                   )}
@@ -158,10 +158,10 @@ export default function Midia() {
           <TabsContent value="afazeres">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3">
                   <h2 className="text-xl font-bold flex items-center gap-2 text-orange-600"><CheckSquare className="w-5 h-5" /> Afazeres</h2>
                   {canEdit && (
-                    <Button onClick={() => { setEditingItem(null); setActiveTab('afazeres'); setIsModalOpen(true); }} className="bg-orange-600 hover:bg-orange-700">
+                    <Button onClick={() => { setEditingItem(null); setActiveTab('afazeres'); setIsModalOpen(true); }} className="bg-orange-600 hover:bg-orange-700 w-full xs:w-auto">
                       <Plus className="w-4 h-4 mr-2" /> Nova Tarefa
                     </Button>
                   )}

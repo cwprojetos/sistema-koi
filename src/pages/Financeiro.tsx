@@ -296,8 +296,8 @@ export default function Financeiro() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto overflow-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <PageHeader title="Financeiro" subtitle="Contas, recibos e controle financeiro" />
         <Dialog open={isModalOpen} onOpenChange={(open) => {
           setIsModalOpen(open);
@@ -310,9 +310,9 @@ export default function Financeiro() {
           }
         }}>
           <DialogTrigger asChild>
-            <div className={`flex gap-2 ${!canEdit ? 'hidden' : ''}`}>
-              <Button size="sm" onClick={() => { setActiveModalTab('conta'); setEditingItem(null); }} className="gap-2 bg-indigo-600 hover:bg-indigo-700"> <Plus className="w-4 h-4" /> Conta </Button>
-              <Button size="sm" variant="outline" onClick={() => { setActiveModalTab('recibo'); setEditingItem(null); }} className="gap-2"> <Plus className="w-4 h-4" /> Recibo </Button>
+            <div className={`flex gap-2 w-full sm:w-auto ${!canEdit ? 'hidden' : ''}`}>
+              <Button size="sm" onClick={() => { setActiveModalTab('conta'); setEditingItem(null); }} className="flex-1 sm:flex-none gap-2 bg-indigo-600 hover:bg-indigo-700 h-10"> <Plus className="w-4 h-4" /> <span className="xs:inline">Conta</span> </Button>
+              <Button size="sm" variant="outline" onClick={() => { setActiveModalTab('recibo'); setEditingItem(null); }} className="flex-1 sm:flex-none gap-2 h-10"> <Plus className="w-4 h-4" /> <span className="xs:inline">Recibo</span> </Button>
             </div>
           </DialogTrigger>
           <DialogContent>
@@ -438,15 +438,15 @@ export default function Financeiro() {
         <TabsContent value="caixa">
 
           {/* Month Selector */}
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <Button variant="outline" size="icon" onClick={goToPrevMonth} className="rounded-full h-9 w-9">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6">
+            <Button variant="outline" size="icon" onClick={goToPrevMonth} className="rounded-full h-8 w-8 sm:h-9 sm:w-9">
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <div className="text-center min-w-[200px]">
-              <p className="text-xl font-black uppercase tracking-wide">{monthNames[selectedMonth - 1]}</p>
-              <p className="text-sm text-muted-foreground font-semibold">{selectedYear}</p>
+            <div className="text-center min-w-[140px] sm:min-w-[200px]">
+              <p className="text-lg sm:text-xl font-black uppercase tracking-wide">{monthNames[selectedMonth - 1]}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground font-semibold">{selectedYear}</p>
             </div>
-            <Button variant="outline" size="icon" onClick={goToNextMonth} className="rounded-full h-9 w-9">
+            <Button variant="outline" size="icon" onClick={goToNextMonth} className="rounded-full h-8 w-8 sm:h-9 sm:w-9">
               <ChevronRight className="w-5 h-5" />
             </Button>
           </div>

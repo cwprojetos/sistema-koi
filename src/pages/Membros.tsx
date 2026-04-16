@@ -179,12 +179,12 @@ export default function Membros() {
     }, [frequencias, membros]);
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
+        <div className="p-4 md:p-6 max-w-6xl mx-auto overflow-hidden">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <PageHeader title="Secretaria" subtitle="Gestão de membros da igreja e registros de comparecimento." />
                 
                 {canEdit && (
-                    <Button onClick={() => navigate('/admin/users')} className="bg-[#212351] hover:bg-[#1a1b41] text-white shadow-lg gap-2 h-11 px-6 rounded-xl transition-all hover:scale-105">
+                    <Button onClick={() => navigate('/admin/users')} className="w-full md:w-auto bg-[#212351] hover:bg-[#1a1b41] text-white shadow-lg gap-2 h-11 px-6 rounded-xl transition-all hover:scale-105">
                         <UserCog className="w-5 h-5" />
                         <span className="font-bold tracking-wider uppercase text-xs">Controle de Usuários</span>
                     </Button>
@@ -193,11 +193,15 @@ export default function Membros() {
 
             <Tabs value={activeTab} className="w-full" onValueChange={(v: any) => setActiveTab(v)}>
                 <TabsList className="grid w-full grid-cols-2 mb-8 h-12">
-                    <TabsTrigger value="membros" className="gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                        <Users className="w-4 h-4" /> Cadastro de Membros
+                    <TabsTrigger value="membros" className="gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm">
+                        <Users className="w-4 h-4 hidden xs:block" /> 
+                        <span className="xs:hidden">Membros</span>
+                        <span className="hidden xs:inline">Cadastro de Membros</span>
                     </TabsTrigger>
-                    <TabsTrigger value="frequencia" className="gap-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
-                        <Calendar className="w-4 h-4" /> Registro de Frequência
+                    <TabsTrigger value="frequencia" className="gap-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-xs sm:text-sm">
+                        <Calendar className="w-4 h-4 hidden xs:block" /> 
+                        <span className="xs:hidden">Chamada</span>
+                        <span className="hidden xs:inline">Registro de Frequência</span>
                     </TabsTrigger>
                 </TabsList>
                             <AnimatePresence mode="wait">
@@ -211,10 +215,10 @@ export default function Membros() {
                                     <TabsContent value="membros" className="mt-0 border-0 p-0">
                                         <div className="card-church p-6">
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                                <div className="flex items-center gap-4">
-                                                    <h2 className="text-xl font-bold flex items-center gap-2 text-blue-600"><Users className="w-5 h-5" /> Lista de Membros</h2>
+                                                <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2 xs:gap-4">
+                                                    <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2 text-blue-600"><Users className="w-5 h-5" /> Lista de Membros</h2>
                                                     {canEdit && (
-                                                        <Button size="sm" onClick={() => { setEditingItem(null); setIsModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+                                                        <Button size="sm" onClick={() => { setEditingItem(null); setIsModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700 w-full xs:w-auto whitespace-nowrap">
                                                             <UserPlus className="w-4 h-4 mr-2" /> Novo Membro
                                                         </Button>
                                                     )}

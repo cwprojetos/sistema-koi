@@ -113,10 +113,10 @@ export default function Projetos() {
 
     const renderReunioes = () => (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-blue-600"><Video className="w-5 h-5" /> Agenda de Reunioes</h2>
                 {isAdmin && (
-                    <Button onClick={() => { setEditingItem(null); setIsModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+                    <Button onClick={() => { setEditingItem(null); setIsModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700 w-full xs:w-auto">
                         <Plus className="w-4 h-4 mr-2" /> Nova Reunião
                     </Button>
                 )}
@@ -172,10 +172,10 @@ export default function Projetos() {
 
     const renderProjetos = () => (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-emerald-600"><Rocket className="w-5 h-5" /> Novos Projetos</h2>
                 {isAdmin && (
-                    <Button onClick={() => { setEditingItem(null); setIsModalOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
+                    <Button onClick={() => { setEditingItem(null); setIsModalOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700 w-full xs:w-auto">
                         <Plus className="w-4 h-4 mr-2" /> Novo Projeto
                     </Button>
                 )}
@@ -260,10 +260,10 @@ export default function Projetos() {
 
     const renderArrecadacoes = () => (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-orange-600"><DollarSign className="w-5 h-5" /> Arrecadacoes</h2>
                 {isAdmin && (
-                    <Button onClick={() => { setEditingItem(null); setActiveTab("new_arrecadacao"); setIsModalOpen(true); }} className="bg-orange-600 hover:bg-orange-700">
+                    <Button onClick={() => { setEditingItem(null); setActiveTab("new_arrecadacao"); setIsModalOpen(true); }} className="bg-orange-600 hover:bg-orange-700 w-full xs:w-auto">
                         <Plus className="w-4 h-4 mr-2" /> Nova Campanha
                     </Button>
                 )}
@@ -459,21 +459,21 @@ export default function Projetos() {
         };
 
         return (
-            <div className="p-6 max-w-6xl mx-auto">
+            <div className="p-4 md:p-6 max-w-6xl mx-auto overflow-hidden">
                 <PageHeader title="Projetos e Arrecadações" subtitle="Reunioes, projetos da igreja e campanhas de arrecadação." />
     
                 <Tabs defaultValue="reunioes" value={activeTab} className="w-full" onValueChange={setActiveTab}>
                 <TabsList className={`grid w-full mb-8 h-12 ${isVisitor ? 'grid-cols-2' : 'grid-cols-3'}`}>
                     {!isVisitor && (
-                        <TabsTrigger value="reunioes" className="gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                            <Video className="w-4 h-4" /> Reuniões
+                        <TabsTrigger value="reunioes" className="gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs sm:text-sm">
+                            <Video className="w-4 h-4 hidden xs:block" /> Reuniões
                         </TabsTrigger>
                     )}
-                    <TabsTrigger value="projetos" className="gap-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
-                        <Rocket className="w-4 h-4" /> Projetos
+                    <TabsTrigger value="projetos" className="gap-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-xs sm:text-sm">
+                        <Rocket className="w-4 h-4 hidden xs:block" /> Projetos
                     </TabsTrigger>
-                    <TabsTrigger value="arrecadacoes" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                        <DollarSign className="w-4 h-4" /> Arrecadações
+                    <TabsTrigger value="arrecadacoes" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white text-xs sm:text-sm">
+                        <DollarSign className="w-4 h-4 hidden xs:block" /> Arrecadações
                     </TabsTrigger>
                 </TabsList>
 
