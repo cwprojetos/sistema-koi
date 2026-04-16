@@ -171,41 +171,40 @@ export function LiveCaptionsDialog() {
         setInterim("");
         finalTranscriptRef.current = "";
         lastFinalIndexRef.current  = 0;
-        shouldRestartRef.current   = true; // allow auto-restart on mobile
+        shouldRestartRef.current   = true;
         setSessionState('starting');
 
-        // ── Camera (video-only stream, no audio) — optional ───────────────────
-        // We NEVER request audio here to avoid conflicting with SpeechRecognition.
+        // ── Camera (Maneira não-bloqueante) ──────────────────────────────────
         if (navigator.mediaDevices?.getUserMedia) {
-            try {
-                const vs = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                cameraStreamRef.current = vs;
-                setCamera(true);
-                console.log("[Media] camera granted (video-only)");
-                setTimeout(() => {
-                    if (videoRef.current) {
-                        videoRef.current.srcObject = vs;
-                        videoRef.current.play().catch(e => console.error("[Video]", e));
-                    }
-                }, 100);
-            } catch {
-                console.log("[Media] no camera — mic-only mode");
-                setCamera(false);
-            }
-        } else {
-            setCamera(false);
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(vs => {
+                    cameraStreamRef.current = vs;
+                    setCamera(true);
+                    console.log("[Media] camera granted");
+                    setTimeout(() => {
+                        if (videoRef.current) {
+                            videoRef.current.srcObject = vs;
+                            videoRef.current.play().catch(e => console.error("[Video]", e));
+                        }
+                    }, 100);
+                })
+                .catch(() => {
+                    console.log("[Media] no camera — mic-only mode");
+                    setCamera(false);
+                });
         }
 
         // ── Start SpeechRecognition ───────────────────────────────────────────
-        // SR will internally request mic access if needed.
-        // onstart fires → setSessionState('active') → caption view renders.
         try {
             console.log("[SR] calling start()...");
             recognitionRef.current.start();
+            
+            // Forçar estado 'active' se o microfone já tiver permissão (evita travar no PC)
+            setTimeout(() => {
+                setSessionState(prev => prev === 'starting' ? 'active' : prev);
+            }, 500);
         } catch (e: any) {
             if (e.name === "InvalidStateError") {
-                // Engine was already running (edge case)
-                console.warn("[SR] already running — treating as active");
                 setSessionState('active');
             } else {
                 console.error("[SR] start() error:", e);
