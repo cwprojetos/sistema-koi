@@ -59,33 +59,28 @@ export function LiveCaptionsDialog() {
             setSessionState('active');
         };
 
+        let sessionFinalText = ""; // Armazena o texto final acumulado DESTA sessão/instância do microfone
+
         rec.onresult = (event: any) => {
-            let newFinal = "";
-            let interim  = "";
+            let currentSessionFinal = "";
+            let interim = "";
 
-            // On mobile, the results array can be reset by the engine.
-            // If its length is <= our tracked index, reset the pointer.
-            if (event.results.length <= lastFinalIndexRef.current) {
-                lastFinalIndexRef.current = 0;
-            }
-
-            // Always start from our own tracked index, NOT event.resultIndex,
-            // because event.resultIndex resets to 0 on Android Chrome.
-            for (let i = lastFinalIndexRef.current; i < event.results.length; i++) {
-                const r = event.results[i];
-                if (r.isFinal) {
-                    newFinal += r[0].transcript.trim() + " ";
-                    lastFinalIndexRef.current = i + 1; // mark as consumed
+            // Percorre TODO o buffer de resultados da engine atual
+            for (let i = 0; i < event.results.length; i++) {
+                const result = event.results[i];
+                if (result.isFinal) {
+                    currentSessionFinal += result[0].transcript.trim() + " ";
                 } else {
-                    interim = r[0].transcript;
-                    break; // only one interim at a time, stop here
+                    interim = result[0].transcript;
                 }
             }
-            if (newFinal.trim()) {
-                finalTranscriptRef.current = (finalTranscriptRef.current + " " + newFinal)
-                    .trim().slice(-600);
-                setTranscript(finalTranscriptRef.current);
-            }
+
+            // sessionFinalText guarda o que já foi confirmado nesta instância
+            sessionFinalText = currentSessionFinal;
+
+            // Exibição: Histórico das sessões passadas + O que foi finalizado nesta sessão
+            const fullTranscript = (finalTranscriptRef.current + " " + currentSessionFinal).trim();
+            setTranscript(fullTranscript.slice(-600)); // Limita o tamanho da legenda na tela
             setInterim(interim);
         };
 
@@ -108,14 +103,20 @@ export function LiveCaptionsDialog() {
             }
         };
 
-        // On desktop, continuous=true keeps engine alive and onend only fires
-        // on explicit stop. On MOBILE (Android Chrome), the engine stops after
-        // each utterance/silence and fires onend — so we must auto-restart.
+        // No mobile, o onend dispara toda vez que o usuário para de falar por 1 segundo.
+        // Precisamos salvar o que foi capturado na memória global (finalTranscriptRef) antes de reiniciar.
         rec.onend = () => {
             console.log("[SR] onend");
             setInterim("");
+
+            // Salva o progresso da sessão que acabou de fechar no histórico geral
+            if (sessionFinalText.trim()) {
+                finalTranscriptRef.current = (finalTranscriptRef.current + " " + sessionFinalText).trim().slice(-600);
+                sessionFinalText = ""; // Reseta o acumulador local para a próxima volta
+            }
+
             if (shouldRestartRef.current && recognitionRef.current) {
-                console.log("[SR] onend — auto-restarting (mobile behavior)");
+                console.log("[SR] onend — auto-restarting (mobile mode)");
                 try {
                     recognitionRef.current.start();
                 } catch (e: any) {
