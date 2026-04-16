@@ -80,7 +80,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     const fetchConfig = async () => {
         try {
             const token = sessionStorage.getItem('token');
-            const response = await fetch(`${API_BASE_URL}/api/configuracoes`, {
+            const response = await fetch(`${API_BASE_URL}/configuracoes`, {
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
             
@@ -129,7 +129,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     const updateConfig = async (chave: keyof ConfigType, valor: string) => {
         try {
             const token = sessionStorage.getItem('token');
-            const response = await fetch(`${API_BASE_URL}/api/configuracoes/chave/${chave}`, {
+            const response = await fetch(`${API_BASE_URL}/configuracoes/chave/${chave}`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',

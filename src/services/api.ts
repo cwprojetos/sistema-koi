@@ -1,6 +1,12 @@
 
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3034';
+const getBaseUrl = () => {
+    let url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3034';
+    url = url.replace(/\/$/, '');
+    return url.endsWith('/api') ? url : `${url}/api`;
+};
+
+export const API_BASE_URL = getBaseUrl();
 
 const getAuthHeaders = () => {
     const token = sessionStorage.getItem('token');
@@ -29,15 +35,15 @@ const handleResponse = async (response: Response) => {
 
 const createApi = (endpoint: string) => ({
     getAll: async () => {
-        const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, { headers: getAuthHeaders() });
+        const response = await fetch(`${API_BASE_URL}/${endpoint}`, { headers: getAuthHeaders() });
         return handleResponse(response);
     },
     getOne: async (id: number) => {
-        const response = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, { headers: getAuthHeaders() });
+        const response = await fetch(`${API_BASE_URL}/${endpoint}/${id}`, { headers: getAuthHeaders() });
         return handleResponse(response);
     },
     create: async (data: any) => {
-        const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
+        const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(data)
@@ -45,7 +51,7 @@ const createApi = (endpoint: string) => ({
         return handleResponse(response);
     },
     update: async (id: number, data: any) => {
-        const response = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/${endpoint}/${id}`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify(data)
@@ -53,7 +59,7 @@ const createApi = (endpoint: string) => ({
         return handleResponse(response);
     },
     delete: async (id: number) => {
-        const response = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/${endpoint}/${id}`, {
             method: 'DELETE',
             headers: getAuthHeaders()
         });
@@ -63,7 +69,7 @@ const createApi = (endpoint: string) => ({
 
 export const authApi = {
     login: async (credentials: any) => {
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(credentials)
@@ -71,7 +77,7 @@ export const authApi = {
         return handleResponse(response);
     },
     loginAsVisitor: async (churchId: number) => {
-        const response = await fetch(`${API_BASE_URL}/api/auth/visitante`, {
+        const response = await fetch(`${API_BASE_URL}/auth/visitante`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ church_id: churchId })
@@ -79,11 +85,11 @@ export const authApi = {
         return handleResponse(response);
     },
     getMe: async () => {
-        const response = await fetch(`${API_BASE_URL}/api/me`, { headers: getAuthHeaders() });
+        const response = await fetch(`${API_BASE_URL}/me`, { headers: getAuthHeaders() });
         return handleResponse(response);
     },
     changePassword: async (data: any) => {
-        const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+        const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(data)
@@ -95,11 +101,11 @@ export const authApi = {
 export const usersApi = {
     ...createApi('users'),
     getPermissions: async (userId: number) => {
-        const response = await fetch(`${API_BASE_URL}/api/permissions/${userId}`, { headers: getAuthHeaders() });
+        const response = await fetch(`${API_BASE_URL}/permissions/${userId}`, { headers: getAuthHeaders() });
         return handleResponse(response);
     },
     updatePermissions: async (userId: number, permissions: any[]) => {
-        const response = await fetch(`${API_BASE_URL}/api/permissions/${userId}`, {
+        const response = await fetch(`${API_BASE_URL}/permissions/${userId}`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify({ permissions })
@@ -111,7 +117,7 @@ export const usersApi = {
 export const churchesApi = {
     ...createApi('churches'),
     getPublic: async () => {
-        const response = await fetch(`${API_BASE_URL}/api/churches/public`);
+        const response = await fetch(`${API_BASE_URL}/churches/public`);
         return handleResponse(response);
     }
 };
@@ -121,7 +127,7 @@ export const uploadFile = async (file: File) => {
     formData.append('file', file);
     const token = sessionStorage.getItem('token');
     
-    const response = await fetch(`${API_BASE_URL}/api/upload`, {
+    const response = await fetch(`${API_BASE_URL}/upload`, {
         method: 'POST',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         body: formData
@@ -154,7 +160,7 @@ export const projetosReunioesApi = createApi('projetos_reunioes');
 export const projetosNovosApi = {
     ...createApi('projetos_novos'),
     registrarArrecadacaoProjeto: async (data: any) => {
-        const response = await fetch(`${API_BASE_URL}/api/projetos_novos/${data.projetoId}/arrecadacao`, {
+        const response = await fetch(`${API_BASE_URL}/projetos_novos/${data.projetoId}/arrecadacao`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ 
@@ -171,7 +177,7 @@ export const projetosArrecadacoesApi = createApi('projetos_arrecadacoes');
 export const arrecadacaoItensApi = {
     ...createApi('arrecadacao_itens'),
     registrarVenda: async (data: any) => {
-        const response = await fetch(`${API_BASE_URL}/api/arrecadacao_itens/${data.itemId}/venda`, {
+        const response = await fetch(`${API_BASE_URL}/arrecadacao_itens/${data.itemId}/venda`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ 
@@ -191,7 +197,7 @@ export const sugestoesApi = createApi('sugestoes');
 export const membrosIgrejaApi = {
     ...createApi('membros_igreja'),
     registrarDizimo: async (data: any) => {
-        const response = await fetch(`${API_BASE_URL}/api/membros_igreja/dizimo`, {
+        const response = await fetch(`${API_BASE_URL}/membros_igreja/dizimo`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(data)

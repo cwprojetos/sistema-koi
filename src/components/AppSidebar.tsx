@@ -65,7 +65,7 @@ export function AppSidebar() {
     queryKey: ['sugestoes'],
     queryFn: async () => {
       const token = sessionStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/api/sugestoes`, {
+      const res = await fetch(`${API_BASE_URL}/sugestoes`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       return res.json();

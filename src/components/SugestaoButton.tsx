@@ -34,7 +34,7 @@ export function SugestaoButton() {
     }
     setLoading(true);
     try {
-      await fetch(`${API_BASE_URL}/api/sugestoes`, {
+      await fetch(`${API_BASE_URL}/sugestoes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
