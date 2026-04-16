@@ -143,6 +143,7 @@ export const oracaoApi = createApi('pedidos_oracao');
 export const devocionalApi = createApi('devocionais');
 export const midiaEscalaApi = createApi('escala_midia');
 export const midiaAfazeresApi = createApi('afazeres_midia');
+export const projecoesApi = createApi('projecoes');
 export const louvorEscalaApi = createApi('escala_louvor');
 export const louvorMusicasApi = createApi('musicas_louvor');
 export const financeiroContasApi = createApi('financeiro_contas');

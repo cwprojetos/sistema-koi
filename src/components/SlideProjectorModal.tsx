@@ -1,16 +1,8 @@
-import { useState, useEffect } from "react";
-import { extractYoutubeId } from "@/lib/youtube";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Play, FileText, Upload, ChevronLeft, ChevronRight, X, Maximize, Save, ListMusic, Trash2, Pencil, CalendarCheck, CheckCircle2, PlusCircle, ArrowUp, ArrowDown, Video, Youtube, Palette, Type } from "lucide-react";
-import { uploadFile } from "@/services/api";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { projecoesApi, uploadFile, configApi } from "@/services/api"; // Note: configApi might need to be added or used via fetch
 
 interface SavedProjection {
-    id: string;
+    id: any; // Allow number or string from API
     nome: string;
     letra: string;
     data: string;
@@ -32,6 +24,7 @@ interface SlideProjectorModalProps {
 }
 
 export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProps) {
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<'arquivo' | 'letra' | 'salvos' | 'dia'>('letra');
     const [lyricsText, setLyricsText] = useState("");
     const [slides, setSlides] = useState<Slide[]>([]);
@@ -39,108 +32,116 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
     const [isProjecting, setIsProjecting] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [projectionName, setProjectionName] = useState("");
-    const [savedProjections, setSavedProjections] = useState<SavedProjection[]>([]);
-    const [dailyProjectionIds, setDailyProjectionIds] = useState<string[]>([]);
+    
+    // API Data
+    const { data: savedProjections = [] } = useQuery({
+        queryKey: ['projecoes'],
+        queryFn: () => projecoesApi.getAll()
+    });
+
+    const { data: configData = [] } = useQuery({
+        queryKey: ['configuracoes'],
+        queryFn: async () => {
+            const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/configuracoes`, {
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
+            });
+            return resp.json();
+        }
+    });
+
+    const dailyConfig = configData.find((c: any) => c.chave === 'midia_diaria');
+    const dailyProjectionIds: string[] = dailyConfig ? JSON.parse(dailyConfig.valor) : [];
+
     const [bgColor, setBgColor] = useState('#000000');
     const [textColor, setTextColor] = useState('#ffffff');
     const [bgVideo, setBgVideo] = useState<string | null>(null);
-  const [youtubeLink, setYoutubeLink] = useState<string>('');
-    const [editingId, setEditingId] = useState<string | null>(null);
+    const [youtubeLink, setYoutubeLink] = useState('');
+    const [editingId, setEditingId] = useState<any>(null);
 
+    // Mutations
+    const saveMutation = useMutation({
+        mutationFn: (data: any) => data.id ? projecoesApi.update(data.id, data) : projecoesApi.create(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['projecoes'] });
+            toast.success("Projeção salva com sucesso!");
+            setProjectionName("");
+            setLyricsText("");
+            setEditingId(null);
+            setBgVideo(null);
+            setYoutubeLink("");
+            setActiveTab('salvos');
+        },
+        onError: () => toast.error("Erro ao salvar projeção no servidor")
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: any) => projecoesApi.delete(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projecoes'] }),
+        onError: () => toast.error("Erro ao deletar projeção")
+    });
+
+    const configMutation = useMutation({
+        mutationFn: async ({ chave, valor }: { chave: string, valor: string }) => {
+            await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/configuracoes/chave/${chave}`, {
+                method: 'PUT',
+                headers: { 
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ valor })
+            });
+        },
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['configuracoes'] })
+    });
+
+    // MIGRATION: Se houver dados locais, avisar para subir ou subir automaticamente uma vez
     useEffect(() => {
-        const saved = localStorage.getItem('midia_projecoes');
-        if (saved) {
-            try {
-                setSavedProjections(JSON.parse(saved));
-            } catch (e) {
-                console.error("Failed to parse saved projections");
+        if (isOpen && savedProjections.length === 0) {
+            const local = localStorage.getItem('midia_projecoes');
+            if (local) {
+                const parsed = JSON.parse(local);
+                if (parsed.length > 0 && confirm("Detectamos projeções salvas localmente neste computador. Deseja sincronizá-las com a nuvem para que apareçam também no celular?")) {
+                    parsed.forEach((p: any) => {
+                        const { id, ...data } = p;
+                        saveMutation.mutate(data);
+                    });
+                    localStorage.removeItem('midia_projecoes');
+                }
             }
         }
-        const daily = localStorage.getItem('midia_diaria');
-        if (daily) {
-            try {
-                setDailyProjectionIds(JSON.parse(daily));
-            } catch (e) {}
-        }
-        const savedColor = localStorage.getItem('midia_bgColor');
-        if (savedColor) {
-            setBgColor(savedColor);
-        }
-        const savedText = localStorage.getItem('midia_textColor');
-        if (savedText) {
-            setTextColor(savedText);
-        }
-    }, []);
+    }, [isOpen, savedProjections.length]);
 
     const saveCurrentProjection = () => {
         if (!lyricsText.trim()) return;
         const name = projectionName.trim() || `Projeção ${new Date().toLocaleDateString('pt-BR')}`;
         
-        let updated: SavedProjection[];
-        
-        if (editingId) {
-            updated = savedProjections.map(p => 
-                p.id === editingId ? { 
-                    ...p, 
-                    nome: name, 
-                    letra: lyricsText,
-                    bgVideo: bgVideo,
-                    bgColor: bgColor,
-                    textColor: textColor
-                } : p
-            );
-        } else {
-            const newProjection: SavedProjection = {
-                id: Date.now().toString(),
-                nome: name,
-                letra: lyricsText,
-                data: new Date().toISOString(),
-                bgVideo: bgVideo,
-                bgColor: bgColor,
-                textColor: textColor
-            };
-            updated = [newProjection, ...savedProjections];
-        }
-
-        setSavedProjections(updated);
-        localStorage.setItem('midia_projecoes', JSON.stringify(updated));
-        setProjectionName("");
-        setEditingId(null);
-        setActiveTab('salvos');
+        saveMutation.mutate({
+            id: editingId,
+            nome: name,
+            letra: lyricsText,
+            bgVideo,
+            bgColor,
+            textColor
+        });
     };
 
-    const editProjection = (proj: SavedProjection) => {
-        setProjectionName(proj.nome);
-        setLyricsText(proj.letra);
-        setBgVideo(proj.bgVideo || null);
-        setBgColor(proj.bgColor || '#000000');
-        setTextColor(proj.textColor || '#ffffff');
-        setYoutubeLink(proj.bgVideo && extractYoutubeId(proj.bgVideo) ? proj.bgVideo : '');
-        setEditingId(proj.id);
-        setActiveTab('letra');
-    };
-
-    const deleteSavedProjection = (id: string) => {
+    const deleteSavedProjection = (id: any) => {
         if(!confirm("Tem certeza que deseja apagar esta lista?")) return;
-        const updated = savedProjections.filter(p => p.id !== id);
-        setSavedProjections(updated);
-        localStorage.setItem('midia_projecoes', JSON.stringify(updated));
+        deleteMutation.mutate(id);
         
-        // Remove from daily if present
-        const newDaily = dailyProjectionIds.filter(dId => dId !== id);
-        setDailyProjectionIds(newDaily);
-        localStorage.setItem('midia_diaria', JSON.stringify(newDaily));
+        const newDaily = dailyProjectionIds.filter(dId => String(dId) !== String(id));
+        configMutation.mutate({ chave: 'midia_diaria', valor: JSON.stringify(newDaily) });
     };
 
-    const toggleDaily = (id: string) => {
+    const toggleDaily = (id: any) => {
+        const idStr = String(id);
         let newDaily;
-        if (dailyProjectionIds.includes(id)) {
-            newDaily = dailyProjectionIds.filter(x => x !== id);
+        if (dailyProjectionIds.includes(idStr)) {
+            newDaily = dailyProjectionIds.filter(x => x !== idStr);
         } else {
-            newDaily = [...dailyProjectionIds, id];
+            newDaily = [...dailyProjectionIds, idStr];
         }
-        setDailyProjectionIds(newDaily);
-        localStorage.setItem('midia_diaria', JSON.stringify(newDaily));
+        configMutation.mutate({ chave: 'midia_diaria', valor: JSON.stringify(newDaily) });
     };
 
     const moveDailyItem = (index: number, direction: 'up' | 'down') => {
@@ -150,13 +151,12 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
         } else if (direction === 'down' && index < newIds.length - 1) {
             [newIds[index], newIds[index + 1]] = [newIds[index + 1], newIds[index]];
         }
-        setDailyProjectionIds(newIds);
-        localStorage.setItem('midia_diaria', JSON.stringify(newIds));
+        configMutation.mutate({ chave: 'midia_diaria', valor: JSON.stringify(newIds) });
     };
 
     const startDailyPresentation = () => {
         const selectedProjs = dailyProjectionIds
-            .map(id => savedProjections.find(p => p.id === id))
+            .map(id => savedProjections.find((p: any) => String(p.id) === String(id)))
             .filter(Boolean) as SavedProjection[];
             
         if(selectedProjs.length === 0) return;
@@ -547,7 +547,7 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
                                     </h3>
                                     <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                                         {dailyProjectionIds.map((id, index) => {
-                                            const proj = savedProjections.find(p => p.id === id);
+                                            const proj = savedProjections.find((p: any) => String(p.id) === String(id));
                                             if (!proj) return null;
                                             return (
                                                 <div key={id + index} className="flex items-center justify-between p-3 bg-white border border-amber-100 rounded-lg shadow-sm">

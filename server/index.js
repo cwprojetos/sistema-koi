@@ -561,6 +561,7 @@ createCrudRoutes('arrecadacao_itens', 'projetos', 'id');
 createCrudRoutes('membros_igreja', 'secretaria', 'nome');
 createCrudRoutes('frequencia_membros', 'secretaria', 'data');
 createCrudRoutes('sugestoes', 'agenda', 'data DESC', 'read');
+createCrudRoutes('projecoes', 'midia', 'data DESC');
 
 // Specialized route for Tithes (Dízimos)
 app.post('/api/membros_igreja/dizimo', authenticateToken, authorize('financeiro', 'write'), async (req, res) => {
