@@ -44,7 +44,7 @@ export default function Midia() {
   });
 
   const afazeresMutation = useMutation({
-    mutationFn: (data: any) => editingItem?.id ? midiaAfazeresApi.update(editingItem.id, data) : midiaAfazeresApi.create(data),
+    mutationFn: (data: any) => data?.id ? midiaAfazeresApi.update(data.id, data) : midiaAfazeresApi.create(data),
     onSuccess: () => { 
       queryClient.invalidateQueries({ queryKey: ['afazeres_midia'] }); 
       setIsModalOpen(false); 

@@ -469,6 +469,8 @@ const createCrudRoutes = (tableName, moduleName, orderField = 'id', postAuthLeve
             
             // Sanitize data: convert empty strings to null and ensure church_id is set
             const data = { ...req.body };
+            delete data.id; // PROTECT AGAINST EXPLICIT ID INSERTS - USE AUTO-INCREMENT
+            
             Object.keys(data).forEach(key => {
                 if (data[key] === '') data[key] = null;
             });
@@ -490,8 +492,11 @@ const createCrudRoutes = (tableName, moduleName, orderField = 'id', postAuthLeve
     app.put(`/api/${tableName}/:id`, authenticateToken, authorize(moduleName, 'write'), async (req, res) => {
         try {
             const { id } = req.params;
+            const data = { ...req.body };
+            delete data.id; // Prevent updating the ID column itself
+            
             let query = `UPDATE ${tableName} SET ? WHERE id = ?`;
-            let params = [req.body, id];
+            let params = [data, id];
 
             if (req.user.role !== 'super_admin') {
                 query += ' AND church_id = ?';
