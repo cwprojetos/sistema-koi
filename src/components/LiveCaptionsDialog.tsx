@@ -28,6 +28,10 @@ export function LiveCaptionsDialog() {
     const recognitionRef     = useRef<any>(null);
     const cameraStreamRef    = useRef<MediaStream | null>(null);
     const finalTranscriptRef = useRef("");
+    // Tracks the last result index already processed as final.
+    // Needed because on mobile Android, event.resultIndex can reset to 0
+    // causing already-final results to be re-appended (word repetition bug).
+    const lastFinalIndexRef  = useRef(0);
 
     const isListening = sessionState === 'active';
 
@@ -54,12 +58,23 @@ export function LiveCaptionsDialog() {
         rec.onresult = (event: any) => {
             let newFinal = "";
             let interim  = "";
-            for (let i = event.resultIndex; i < event.results.length; i++) {
+
+            // On mobile, the results array can be reset by the engine.
+            // If its length is <= our tracked index, reset the pointer.
+            if (event.results.length <= lastFinalIndexRef.current) {
+                lastFinalIndexRef.current = 0;
+            }
+
+            // Always start from our own tracked index, NOT event.resultIndex,
+            // because event.resultIndex resets to 0 on Android Chrome.
+            for (let i = lastFinalIndexRef.current; i < event.results.length; i++) {
                 const r = event.results[i];
                 if (r.isFinal) {
                     newFinal += r[0].transcript.trim() + " ";
+                    lastFinalIndexRef.current = i + 1; // mark as consumed
                 } else {
                     interim = r[0].transcript;
+                    break; // only one interim at a time, stop here
                 }
             }
             if (newFinal.trim()) {
@@ -133,6 +148,7 @@ export function LiveCaptionsDialog() {
         setTranscript("");
         setInterim("");
         finalTranscriptRef.current = "";
+        lastFinalIndexRef.current  = 0; // reset index tracker on new session
         setSessionState('starting');
 
         // ── Camera (video-only stream, no audio) — optional ───────────────────
