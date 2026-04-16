@@ -22,28 +22,30 @@ export function LiveCaptionsDialog() {
 
     const { config } = useConfig();
 
-    const videoRef            = useRef<HTMLVideoElement>(null);
-    const recognitionRef      = useRef<any>(null);
-    const streamRef           = useRef<MediaStream | null>(null);
-    const finalTranscriptRef  = useRef("");   // accumulates final text
+    const videoRef           = useRef<HTMLVideoElement>(null);
+    const recognitionRef     = useRef<any>(null);
+    const cameraStreamRef    = useRef<MediaStream | null>(null); // video-only stream (no audio)
+    const finalTranscriptRef = useRef("");
 
-    // ── Build recognition instance when dialog opens ─────────────────────────
+    // ── Create the SpeechRecognition instance once per dialog open ────────────
+    // We create it here and NEVER call stop() inside this effect.
+    // The instance is reused for the whole session.
     useEffect(() => {
         if (!isOpen) return;
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
             toast.error("Seu navegador não suporta reconhecimento de voz.");
             return;
         }
 
-        const rec = new SpeechRecognition();
-        rec.lang            = "pt-BR";
-        rec.continuous      = true;   // engine stays alive — NO manual restarts needed
-        rec.interimResults  = true;
+        const rec = new SR();
+        rec.lang           = "pt-BR";
+        rec.continuous     = true;   // keep session alive — browser handles mic on its own
+        rec.interimResults = true;
 
         rec.onstart = () => {
-            console.log("[SR] started");
+            console.log("[SR] onstart — recognition active");
             setIsListening(true);
         };
 
@@ -70,32 +72,38 @@ export function LiveCaptionsDialog() {
         };
 
         rec.onerror = (event: any) => {
-            console.error("[SR] error:", event.error);
+            console.error("[SR] onerror:", event.error);
             if (event.error === "not-allowed" || event.error === "service-not-allowed") {
                 toast.error("Permissão de microfone negada. Verifique as configurações do navegador.");
                 setIsListening(false);
             } else if (event.error === "no-speech") {
-                // Normal silence — continuous=true keeps us alive, nothing to do
-                console.log("[SR] no-speech (silence detected)");
+                // Normal silence with continuous=true — engine stays alive, ignore
+                console.log("[SR] no-speech (silence)");
+            } else if (event.error === "audio-capture") {
+                toast.error("Microfone não encontrado ou ocupado por outro app.");
+                setIsListening(false);
             } else if (event.error === "network") {
                 toast.error("Erro de rede no reconhecimento de voz.");
             } else {
-                console.warn("[SR] error:", event.error);
+                console.warn("[SR] onerror:", event.error);
             }
         };
 
-        // With continuous=true this should ONLY fire when we call .stop() ourselves.
-        // Do NOT restart here — that causes the infinite loop.
+        // onend only fires if something external ends the session (e.g. error, stop() call).
+        // With continuous=true it should NOT fire during normal operation.
+        // Do NOT call start() here — that is what created the infinite loop.
         rec.onend = () => {
-            console.log("[SR] ended");
+            console.log("[SR] onend — session ended");
             setInterim("");
             setIsListening(false);
         };
 
         recognitionRef.current = rec;
+        console.log("[SR] instance created");
 
         return () => {
-            console.log("[SR] cleanup");
+            // Cleanup: stop recognition when dialog closes / component unmounts
+            console.log("[SR] cleanup — stopping instance");
             if (recognitionRef.current) {
                 try { recognitionRef.current.stop(); } catch (_) {}
                 recognitionRef.current = null;
@@ -103,12 +111,19 @@ export function LiveCaptionsDialog() {
         };
     }, [isOpen]);
 
-    // ── Tear down when dialog closes ──────────────────────────────────────────
+    // ── Close dialog → tear everything down ───────────────────────────────────
     useEffect(() => {
         if (!isOpen) stopSession();
     }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // ── Start session: mic required, camera optional ──────────────────────────
+    // ── Start capture ─────────────────────────────────────────────────────────
+    //
+    // Key design:
+    //   • getUserMedia is used ONLY for the camera preview (video only, no audio).
+    //   • For mic permission: request audio via getUserMedia, then IMMEDIATELY stop
+    //     those audio tracks so the mic is free for SpeechRecognition.
+    //   • SpeechRecognition manages its own microphone access internally.
+    //
     const startSession = async () => {
         if (!navigator.mediaDevices?.getUserMedia) {
             toast.error("O sistema requer uma conexão segura (HTTPS).");
@@ -119,54 +134,61 @@ export function LiveCaptionsDialog() {
             return;
         }
 
-        // Reset text
         setTranscript("");
         setInterim("");
         finalTranscriptRef.current = "";
 
-        // Step 1 — Request camera + mic; fall back to mic-only
+        // ── Step 1: Camera (video only — no audio track to avoid mic conflict) ─
         let cameraGranted = false;
         try {
-            toast.info("Acessando dispositivos...");
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            streamRef.current = stream;
+            toast.info("Acessando câmera...");
+            // Request video ONLY — audio stays free for SpeechRecognition
+            const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            cameraStreamRef.current = videoStream;
             cameraGranted = true;
             setCamera(true);
-            console.log("[Media] camera + mic granted");
+            console.log("[Media] camera granted (video-only stream)");
 
             setTimeout(() => {
                 if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
+                    videoRef.current.srcObject = videoStream;
                     videoRef.current.play().catch(e => console.error("[Video] play error:", e));
                 }
             }, 100);
         } catch {
-            console.warn("[Media] camera unavailable, trying mic-only");
+            console.log("[Media] camera unavailable — mic-only mode");
+            setCamera(false);
+
+            // ── Step 1b: Trigger browser mic permission prompt, then release ──
+            // We must NOT hold this stream — it would block SpeechRecognition.
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                streamRef.current = stream;
-                setCamera(false);
-                toast.warning("Iniciando apenas com microfone (câmera indisponível).");
-                console.log("[Media] mic-only granted");
-            } catch (audioErr: any) {
-                console.error("[Media] mic denied:", audioErr);
+                toast.info("Solicitando permissão do microfone...");
+                const tempMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Immediately release all audio tracks so SR can take the mic
+                tempMicStream.getTracks().forEach(t => t.stop());
+                console.log("[Media] mic permission granted and released for SR");
+            } catch (micErr: any) {
+                console.error("[Media] mic denied:", micErr);
                 toast.error("Permissão de microfone é obrigatória para as legendas.");
                 return;
             }
         }
 
-        // Step 2 — Start recognition (only once; continuous keeps it running)
+        // ── Step 2: Start SpeechRecognition ───────────────────────────────────
+        // By now the mic is free (no competing audio stream).
+        // SpeechRecognition will grab it on its own.
         try {
-            console.log("[SR] starting...");
+            console.log("[SR] calling start()...");
             recognitionRef.current.start();
+            // setIsListening(true) happens in onstart callback
         } catch (e: any) {
             if (e.name === "InvalidStateError") {
                 // Already running — treat as success
-                console.warn("[SR] already running, skipping start");
+                console.warn("[SR] InvalidStateError on start — already running");
                 setIsListening(true);
             } else {
-                console.error("[SR] start error:", e);
-                toast.error("Erro ao iniciar reconhecimento de voz.");
+                console.error("[SR] start() threw:", e);
+                toast.error("Erro ao iniciar reconhecimento de voz: " + e.message);
                 return;
             }
         }
@@ -176,14 +198,16 @@ export function LiveCaptionsDialog() {
 
     // ── Stop session ──────────────────────────────────────────────────────────
     const stopSession = () => {
-        console.log("[SR] stopping session");
+        console.log("[SR] stopSession called");
         finalTranscriptRef.current = "";
 
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(t => t.stop());
-            streamRef.current = null;
+        // Stop camera stream
+        if (cameraStreamRef.current) {
+            cameraStreamRef.current.getTracks().forEach(t => t.stop());
+            cameraStreamRef.current = null;
         }
 
+        // Stop recognition (onend will fire and set isListening=false)
         if (recognitionRef.current) {
             try { recognitionRef.current.stop(); } catch (_) {}
         }
@@ -200,9 +224,9 @@ export function LiveCaptionsDialog() {
         if (!url) return "";
         try {
             let id = "";
-            if (url.includes("v="))          id = url.split("v=")[1].split("&")[0];
+            if (url.includes("v="))             id = url.split("v=")[1].split("&")[0];
             else if (url.includes("youtu.be/")) id = url.split("youtu.be/")[1].split("?")[0];
-            else if (url.includes("live/"))   id = url.split("live/")[1].split("?")[0];
+            else if (url.includes("live/"))     id = url.split("live/")[1].split("?")[0];
             return `https://www.youtube.com/embed/${id}?autoplay=1&cc_load_policy=1&cc_lang_pref=pt&hl=pt&rel=0`;
         } catch {
             return url;
@@ -243,7 +267,6 @@ export function LiveCaptionsDialog() {
                                 <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Como deseja assistir?</h2>
                                 <p className="text-gray-400">Escolha a fonte para gerar as legendas automáticas</p>
                             </div>
-
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl px-6">
                                 <button
                                     onClick={() => setMode('youtube')}
