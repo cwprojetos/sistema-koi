@@ -5,13 +5,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Play, FileText, Upload, ChevronLeft, ChevronRight, X, Maximize, Save, ListMusic, Trash2, Pencil, CalendarCheck, CheckCircle2, PlusCircle, ArrowUp, ArrowDown, Video, Youtube } from "lucide-react";
+import { Play, FileText, Upload, ChevronLeft, ChevronRight, X, Maximize, Save, ListMusic, Trash2, Pencil, CalendarCheck, CheckCircle2, PlusCircle, ArrowUp, ArrowDown, Video, Youtube, Palette, Type } from "lucide-react";
+import { uploadFile } from "@/services/api";
+import { toast } from "sonner";
 
 interface SavedProjection {
     id: string;
     nome: string;
     letra: string;
     data: string;
+    bgVideo?: string | null;
+    bgColor?: string;
+    textColor?: string;
+}
+
+interface Slide {
+    content: string;
+    bgVideo?: string | null;
+    bgColor?: string;
+    textColor?: string;
 }
 
 interface SlideProjectorModalProps {
@@ -22,7 +34,7 @@ interface SlideProjectorModalProps {
 export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProps) {
     const [activeTab, setActiveTab] = useState<'arquivo' | 'letra' | 'salvos' | 'dia'>('letra');
     const [lyricsText, setLyricsText] = useState("");
-    const [slides, setSlides] = useState<string[]>([]);
+    const [slides, setSlides] = useState<Slide[]>([]);
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [isProjecting, setIsProjecting] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -68,14 +80,24 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
         
         if (editingId) {
             updated = savedProjections.map(p => 
-                p.id === editingId ? { ...p, nome: name, letra: lyricsText } : p
+                p.id === editingId ? { 
+                    ...p, 
+                    nome: name, 
+                    letra: lyricsText,
+                    bgVideo: bgVideo,
+                    bgColor: bgColor,
+                    textColor: textColor
+                } : p
             );
         } else {
             const newProjection: SavedProjection = {
                 id: Date.now().toString(),
                 nome: name,
                 letra: lyricsText,
-                data: new Date().toISOString()
+                data: new Date().toISOString(),
+                bgVideo: bgVideo,
+                bgColor: bgColor,
+                textColor: textColor
             };
             updated = [newProjection, ...savedProjections];
         }
@@ -90,6 +112,10 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
     const editProjection = (proj: SavedProjection) => {
         setProjectionName(proj.nome);
         setLyricsText(proj.letra);
+        setBgVideo(proj.bgVideo || null);
+        setBgColor(proj.bgColor || '#000000');
+        setTextColor(proj.textColor || '#ffffff');
+        setYoutubeLink(proj.bgVideo && extractYoutubeId(proj.bgVideo) ? proj.bgVideo : '');
         setEditingId(proj.id);
         setActiveTab('letra');
     };
@@ -135,22 +161,33 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
             
         if(selectedProjs.length === 0) return;
 
-        const parsedSlides: string[] = [];
+        const allSlides: Slide[] = [];
         selectedProjs.forEach((p, index) => {
             const pSlides = p.letra
                 .split(/\n\s*\n/)
                 .map(s => s.trim())
-                .filter(s => s.length > 0);
+                .filter(s => s.length > 0)
+                .map(content => ({
+                    content,
+                    bgVideo: p.bgVideo,
+                    bgColor: p.bgColor,
+                    textColor: p.textColor
+                }));
             
-            parsedSlides.push(...pSlides);
+            allSlides.push(...pSlides);
             
-            // Add transition slide between songs with the next song's sequence number
+            // Add transition slide between songs
             if (index < selectedProjs.length - 1) {
-                parsedSlides.push(`[[TRANSICAO_${index + 2}]]`);
+                allSlides.push({
+                    content: `[[TRANSICAO_${index + 2}]]`,
+                    bgVideo: p.bgVideo,
+                    bgColor: p.bgColor,
+                    textColor: p.textColor
+                });
             }
         });
             
-        startProjection(parsedSlides);
+        startProjection(allSlides);
     };
 
     const loadAndProject = (proj: SavedProjection) => {
@@ -158,7 +195,13 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
         const parsedSlides = proj.letra
             .split(/\n\s*\n/)
             .map(s => s.trim())
-            .filter(s => s.length > 0);
+            .filter(s => s.length > 0)
+            .map(content => ({
+                content,
+                bgVideo: proj.bgVideo,
+                bgColor: proj.bgColor,
+                textColor: proj.textColor
+            }));
             
         startProjection(parsedSlides);
     };
@@ -166,19 +209,25 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
     const startTextPresentation = () => {
         if (!lyricsText.trim()) return;
         
-        // Separar por linhas em branco (duas quebras de linha ou mais)
         const parsedSlides = lyricsText
             .split(/\n\s*\n/)
             .map(s => s.trim())
-            .filter(s => s.length > 0);
+            .filter(s => s.length > 0)
+            .map(content => ({
+                content,
+                bgVideo,
+                bgColor,
+                textColor
+            }));
             
         startProjection(parsedSlides);
     };
 
-    const startProjection = async (parsedSlides: string[]) => {
-        // Automatically inject an empty transition slide at the very beginning
-        // so the presentation always starts with just the background.
-        const slidesWithIntro = ['[[TRANSICAO_INICIAL]]', ...parsedSlides];
+    const startProjection = async (parsedSlides: Slide[]) => {
+        const slidesWithIntro = [
+            { content: '[[TRANSICAO_INICIAL]]', bgVideo: parsedSlides[0]?.bgVideo, bgColor: parsedSlides[0]?.bgColor, textColor: parsedSlides[0]?.textColor },
+            ...parsedSlides
+        ];
         
         setSlides(slidesWithIntro);
         setCurrentSlideIndex(0);
@@ -230,22 +279,22 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
     return (
         <>
             {isProjecting && (
-                <div className="fixed inset-0 z-[9999] text-white flex flex-col justify-center items-center overflow-hidden" style={{ backgroundColor: bgVideo ? 'black' : bgColor }}>
-                {/* Render background: either a local video file or a YouTube embed */}
-                {bgVideo && (
-                    extractYoutubeId(bgVideo) ? (
-                        // YouTube embed
+                <div className="fixed inset-0 z-[9999] text-white flex flex-col justify-center items-center overflow-hidden" 
+                     style={{ backgroundColor: slides[currentSlideIndex]?.bgVideo ? 'black' : (slides[currentSlideIndex]?.bgColor || '#000000') }}>
+                
+                {slides[currentSlideIndex]?.bgVideo && (
+                    extractYoutubeId(slides[currentSlideIndex]!.bgVideo!) ? (
                         <iframe
-                            src={`https://www.youtube.com/embed/${extractYoutubeId(bgVideo)}?autoplay=1&mute=1&loop=1&playlist=${extractYoutubeId(bgVideo)}`}
+                            key={extractYoutubeId(slides[currentSlideIndex]!.bgVideo!)}
+                            src={`https://www.youtube.com/embed/${extractYoutubeId(slides[currentSlideIndex]!.bgVideo!)}?autoplay=1&mute=1&loop=1&playlist=${extractYoutubeId(slides[currentSlideIndex]!.bgVideo!)}`}
                             className="absolute inset-0 w-full h-full object-cover z-0 opacity-90"
                             allow="autoplay; encrypted-media"
                             allowFullScreen
                             title="Background YouTube"
                         />
                     ) : (
-                        // Local video file
-                        <video autoPlay loop muted className="absolute inset-0 w-full h-full object-cover z-0 opacity-90">
-                            <source src={bgVideo} type="video/mp4" />
+                        <video key={slides[currentSlideIndex]!.bgVideo} autoPlay loop muted className="absolute inset-0 w-full h-full object-cover z-0 opacity-90">
+                            <source src={slides[currentSlideIndex]!.bgVideo!} type="video/mp4" />
                         </video>
                     )
                 )}
@@ -259,11 +308,12 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
                 </Button>
                 
                 <div className="w-full flex-1 flex items-center justify-center p-8 md:p-16 pb-[30vh] text-center z-10">
-                    <p className="text-3xl md:text-5xl lg:text-7xl font-bold leading-normal whitespace-pre-wrap max-w-[90vw] mx-auto drop-shadow-2xl" style={{ color: textColor }}>
-                        {slides[currentSlideIndex]?.startsWith('[[TRANSICAO_') ? (
+                    <p className="text-3xl md:text-5xl lg:text-7xl font-bold leading-normal whitespace-pre-wrap max-w-[90vw] mx-auto drop-shadow-2xl" 
+                       style={{ color: slides[currentSlideIndex]?.textColor || '#ffffff' }}>
+                        {slides[currentSlideIndex]?.content.startsWith('[[TRANSICAO_') ? (
                             ''
                         ) : (
-                            slides[currentSlideIndex]
+                            slides[currentSlideIndex]?.content
                         )}
                     </p>
                 </div>
@@ -278,7 +328,7 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
                     >
                         <ChevronLeft className="w-12 h-12" />
                     </Button>
-                    <span className={`text-xl font-bold font-mono ${slides[currentSlideIndex]?.startsWith('[[TRANSICAO_') ? 'text-yellow-400 drop-shadow-md' : ''}`}>
+                    <span className={`text-xl font-bold font-mono ${slides[currentSlideIndex]?.content.startsWith('[[TRANSICAO_') ? 'text-yellow-400 drop-shadow-md' : ''}`}>
                         {currentSlideIndex + 1} / {slides.length}
                     </span>
                     <Button 
@@ -296,79 +346,15 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
 
             <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-2xl bg-white border-none shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-                <DialogHeader className="border-b pb-4 mb-4 flex flex-row items-center justify-between">
-                    <DialogTitle className="text-2xl font-black text-indigo-950 flex items-center gap-2">
-                        <Maximize className="w-6 h-6 text-indigo-600" /> 
-                        Projetor de Letras e Slides
-                    </DialogTitle>
-                    <DialogDescription className="sr-only">
-                        Gerenciamento de projeção de letras e slides para a igreja.
-                    </DialogDescription>
-                    <div className="flex flex-wrap items-center gap-4 mt-0">
-                        {bgVideo ? (
-                            <Button variant="ghost" size="sm" onClick={() => { setBgVideo(null); setYoutubeLink(''); }} className="h-8 px-2 text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50">
-                                <X className="w-3 h-3 mr-1" /> Remover Fundo
-                            </Button>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                {/* File upload */}
-                                <Label className="text-xs font-bold text-indigo-600 uppercase tracking-wider cursor-pointer hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 px-2 py-1.5 rounded-lg border border-indigo-100 transition-colors">
-                                    <Video className="w-3 h-3" /> Fundo Animado (arquivo)
-                                    <input
-                                        type="file"
-                                        accept="video/mp4,video/webm"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) setBgVideo(URL.createObjectURL(file));
-                                        }}
-                                    />
-                                </Label>
-                                {/* YouTube link */}
-                                <Label className="text-xs font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1 bg-indigo-50 px-2 py-1.5 rounded-lg border border-indigo-100 transition-colors">
-                                    <Youtube className="w-3 h-3" /> Fundo YouTube
-                                    <input
-                                        type="text"
-                                        placeholder="https://youtube.com/..."
-                                        className="ml-2 p-1 border border-indigo-200 rounded text-sm w-48"
-                                        value={youtubeLink}
-                                        onChange={(e) => setYoutubeLink(e.target.value)}
-                                        onBlur={() => {
-                                            const id = extractYoutubeId(youtubeLink);
-                                            if (id) setBgVideo(youtubeLink.trim());
-                                        }}
-                                    />
-                                </Label>
-                            </div>
-                        )}
-                        <div className="flex items-center gap-2 border-l pl-4 border-slate-200">
-                            <Label htmlFor="textColor" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Texto:</Label>
-                            <input 
-                                id="textColor"
-                                type="color" 
-                                value={textColor} 
-                                onChange={(e) => {
-                                    setTextColor(e.target.value);
-                                    localStorage.setItem('midia_textColor', e.target.value);
-                                }}
-                                className="w-8 h-8 rounded cursor-pointer border-0 p-0 shadow-sm"
-                                title="Cor do Texto da Projeção"
-                            />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="bgColor" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Fundo:</Label>
-                            <input 
-                                id="bgColor"
-                                type="color" 
-                                value={bgColor} 
-                                onChange={(e) => {
-                                    setBgColor(e.target.value);
-                                    localStorage.setItem('midia_bgColor', e.target.value);
-                                }}
-                                className="w-8 h-8 rounded cursor-pointer border-0 p-0 shadow-sm"
-                                title="Cor do Fundo da Projeção"
-                            />
-                        </div>
+                <DialogHeader className="border-b pb-4 mb-4">
+                    <div className="flex flex-row items-center justify-between">
+                        <DialogTitle className="text-2xl font-black text-indigo-950 flex items-center gap-2">
+                            <Maximize className="w-6 h-6 text-indigo-600" /> 
+                            Projetor de Letras e Slides
+                        </DialogTitle>
+                        <DialogDescription className="sr-only">
+                            Gerenciamento de projeção de letras e slides para a igreja.
+                        </DialogDescription>
                     </div>
                 </DialogHeader>
 
@@ -394,17 +380,96 @@ export function SlideProjectorModal({ isOpen, onClose }: SlideProjectorModalProp
                     </TabsList>
 
                     <TabsContent value="letra" className="space-y-4">
+                        <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl space-y-4">
+                            <h4 className="text-sm font-black text-indigo-900 flex items-center gap-2">
+                                <Palette className="w-4 h-4" /> Configurações de Fundo e Estilo (Esta Lista)
+                            </h4>
+                            <div className="flex flex-wrap items-center gap-4">
+                                {bgVideo ? (
+                                    <div className="flex items-center gap-2 p-2 bg-indigo-100 rounded-lg">
+                                        <span className="text-xs font-bold text-indigo-700 truncate max-w-[200px]">
+                                            {extractYoutubeId(bgVideo) ? 'YouTube: ' + extractYoutubeId(bgVideo) : 'Arquivo de Vídeo'}
+                                        </span>
+                                        <Button variant="ghost" size="icon" onClick={() => { setBgVideo(null); setYoutubeLink(''); }} className="h-6 w-6 text-red-500">
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <Label className="text-xs font-bold text-indigo-600 uppercase tracking-wider cursor-pointer hover:bg-indigo-100 flex items-center gap-1 bg-white px-3 py-2 rounded-lg border border-indigo-200 transition-colors">
+                                            <Video className="w-4 h-4" /> Vídeo de Fundo
+                                            <input
+                                                type="file"
+                                                accept="video/mp4,video/webm"
+                                                className="hidden"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        try {
+                                                            toast.info("Fazendo upload do vídeo...");
+                                                            const res = await uploadFile(file);
+                                                            setBgVideo(res.url);
+                                                            toast.success("Vídeo configurado!");
+                                                        } catch (err) {
+                                                            toast.error("Erro ao subir vídeo");
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </Label>
+                                        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-indigo-200">
+                                            <Youtube className="w-4 h-4 text-red-500" />
+                                            <input
+                                                type="text"
+                                                placeholder="Link do YouTube..."
+                                                className="text-xs w-40 outline-none"
+                                                value={youtubeLink}
+                                                onChange={(e) => setYoutubeLink(e.target.value)}
+                                                onBlur={() => {
+                                                    const id = extractYoutubeId(youtubeLink);
+                                                    if (id) {
+                                                        setBgVideo(youtubeLink.trim());
+                                                        toast.success("YouTube configurado!");
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-4 border-l pl-4 border-indigo-200">
+                                    <div className="flex items-center gap-2">
+                                        <Type className="w-4 h-4 text-slate-500" />
+                                        <input 
+                                            type="color" 
+                                            value={textColor} 
+                                            onChange={(e) => setTextColor(e.target.value)}
+                                            className="w-6 h-6 rounded cursor-pointer border-0 p-0"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Palette className="w-4 h-4 text-slate-500" />
+                                        <input 
+                                            type="color" 
+                                            value={bgColor} 
+                                            onChange={(e) => setBgColor(e.target.value)}
+                                            className="w-6 h-6 rounded cursor-pointer border-0 p-0"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex gap-4 items-end">
                             <div className="flex-1 space-y-2">
                                 <Label className="font-bold text-indigo-900">Nome da Projeção (Para Salvar)</Label>
                                 <Input 
                                     placeholder="Ex: Culto de Domingo (4 Músicas)..." 
-                                    className="border-indigo-100"
+                                    className="border-indigo-100 h-11"
                                     value={projectionName}
                                     onChange={(e) => setProjectionName(e.target.value)}
                                 />
                             </div>
-                            <Button variant="outline" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 gap-2" onClick={saveCurrentProjection} disabled={!lyricsText.trim()}>
+                            <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700 h-11 px-6 font-bold gap-2" onClick={saveCurrentProjection} disabled={!lyricsText.trim()}>
                                 <Save className="w-4 h-4" /> Salvar Lista
                             </Button>
                         </div>
