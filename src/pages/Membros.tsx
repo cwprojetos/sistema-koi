@@ -282,17 +282,17 @@ export default function Membros() {
                                                     <p className="text-xs text-muted-foreground truncate">{m.documentos || 'Sem doc'}</p>
                                                 </div>
                                             </div>
-                                                    <div className="space-y-1 text-sm text-muted-foreground">
-                                                        <p className="flex items-center gap-2"><strong>Doc:</strong> {m.documentos || '---'}</p>
-                                                        <p className="flex items-center gap-2"><strong>Tel:</strong> {m.telefone || '---'}</p>
-                                                        <p className="flex items-center gap-2"><strong>E-mail:</strong> <span className="lowercase">{m.email_contato || '---'}</span></p>
-                                                        <p className="flex items-center gap-2"><strong>Prof:</strong> {m.profissao || '---'}</p>
-                                                        <p className="flex items-center gap-2"><strong>Civil:</strong> {m.estado_civil || '---'}</p>
-                                                        <p className="flex items-center gap-2"><strong>Aniv:</strong> {m.aniversario ? new Date(m.aniversario).toLocaleDateString() : '---'}</p>
-                                                        <p className="text-xs mt-2 italic line-clamp-2 text-[#212351]/70">
-                                                    {m.rua ? `${m.rua}, ${m.numero}${m.bairro ? ` - ${m.bairro}` : ''} | ${m.cidade}-${m.estado}` : (m.endereco || 'Sem endereço cadastrado')}
-                                                </p>
-                                            </div>
+                                                    <div className="space-y-1 text-sm text-muted-foreground overflow-hidden">
+                                                        <p className="flex items-center gap-2 min-w-0 font-medium"><strong>Doc:</strong> <span className="truncate">{m.documentos || '---'}</span></p>
+                                                        <p className="flex items-center gap-2 min-w-0 font-medium"><strong>Tel:</strong> <span className="truncate">{m.telefone || '---'}</span></p>
+                                                        <p className="flex items-center gap-2 min-w-0 font-medium"><strong>E-mail:</strong> <span className="lowercase truncate">{m.email_contato || '---'}</span></p>
+                                                        <p className="flex items-center gap-2 min-w-0 font-medium"><strong>Prof:</strong> <span className="truncate">{m.profissao || '---'}</span></p>
+                                                        <p className="flex items-center gap-2 min-w-0 font-medium"><strong>Civil:</strong> <span className="truncate">{m.estado_civil || '---'}</span></p>
+                                                        <p className="flex items-center gap-2 min-w-0 font-medium"><strong>Aniv:</strong> <span>{m.aniversario ? new Date(m.aniversario).toLocaleDateString() : '---'}</span></p>
+                                                        <p className="text-xs mt-2 italic line-clamp-2 text-[#212351]/70 break-words">
+                                                            {m.rua ? `${m.rua}, ${m.numero}${m.bairro ? ` - ${m.bairro}` : ''} | ${m.cidade}-${m.estado}` : (m.endereco || 'Sem endereço cadastrado')}
+                                                        </p>
+                                                    </div>
                                         </div>
                                     ))}
                                 </div>
@@ -332,19 +332,19 @@ export default function Membros() {
                                             <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
                                                 <div className="flex-1">
                                                     <Label className="text-xs font-bold uppercase text-muted-foreground">Tipo de Evento</Label>
-                                                    <div className="flex gap-2 mt-2">
+                                                    <div className="flex flex-wrap gap-2 mt-2">
                                                         {["Escola Biblíca", "Culto", "Eventos Diversos"].map((t) => (
                                                             <Button 
                                                                 key={t}
                                                                 size="sm"
                                                                 variant={attendanceType === t ? "default" : "outline"}
-                                                                className={attendanceType === t ? "bg-emerald-600 hover:bg-emerald-700" : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"}
+                                                                className={`flex-grow sm:flex-grow-0 h-10 sm:h-9 ${attendanceType === t ? "bg-emerald-600 hover:bg-emerald-700 font-bold" : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"}`}
                                                                 onClick={() => setAttendanceType(t)}
                                                             >
                                                                 {t === "Escola Biblíca" && <BookOpen className="w-3.5 h-3.5 mr-2" />}
                                                                 {t === "Culto" && <Heart className="w-3.5 h-3.5 mr-2" />}
                                                                 {t === "Eventos Diversos" && <PartyPopper className="w-3.5 h-3.5 mr-2" />}
-                                                                {t}
+                                                                <span className="whitespace-nowrap">{t}</span>
                                                             </Button>
                                                         ))}
                                                     </div>
@@ -417,7 +417,7 @@ export default function Membros() {
                     setEstadoCivil(editingItem.estado_civil || "Casado(a)");
                 }
             }}>
-                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar p-4 sm:p-6">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold text-[#212351]">{editingItem ? 'Editar' : 'Cadastrar'} Membro</DialogTitle>
                     </DialogHeader>
@@ -535,78 +535,78 @@ export default function Membros() {
                             <Label>Filhos (Nomes/Idades)</Label>
                             <Input name="filhos" defaultValue={editingItem?.filhos} placeholder="Ex: Maria (5), João (8)" />
                         </div>
-                        <div className="space-y-2 border-t pt-4">
+                        <div className="space-y-4 border-t pt-4">
                             <Label className="text-xs font-black uppercase text-blue-600 tracking-widest">Endereço Residencial</Label>
-                            <div className="grid grid-cols-3 gap-2">
-                                <div className="col-span-1 space-y-1">
-                                    <Label className="text-[10px] uppercase">CEP</Label>
+                            <div className="grid grid-cols-1 xs:grid-cols-3 gap-3 sm:gap-2">
+                                <div className="xs:col-span-1 space-y-1">
+                                    <Label className="text-[10px] uppercase font-bold">CEP</Label>
                                     <Input 
                                         name="cep" 
                                         placeholder="00000-000" 
                                         value={addressData.cep} 
                                         onChange={(e) => handleCepChange(e.target.value)}
-                                        className="h-9"
+                                        className="h-10 sm:h-9"
                                     />
                                 </div>
-                                <div className="col-span-2 space-y-1">
-                                    <Label className="text-[10px] uppercase">Rua / Logradouro</Label>
+                                <div className="xs:col-span-2 space-y-1">
+                                    <Label className="text-[10px] uppercase font-bold">Rua / Logradouro</Label>
                                     <Input 
                                         name="rua" 
                                         value={addressData.rua} 
                                         onChange={(e) => setAddressData(prev => ({ ...prev, rua: e.target.value }))}
-                                        className="h-9"
+                                        className="h-10 sm:h-9"
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-4 gap-2">
+                            <div className="grid grid-cols-2 xs:grid-cols-4 gap-3 sm:gap-2">
                                 <div className="col-span-1 space-y-1">
-                                    <Label className="text-[10px] uppercase">Número</Label>
+                                    <Label className="text-[10px] uppercase font-bold">Número</Label>
                                     <Input 
                                         name="numero" 
                                         value={addressData.numero} 
                                         onChange={(e) => setAddressData(prev => ({ ...prev, numero: e.target.value }))}
-                                        className="h-9"
+                                        className="h-10 sm:h-9"
                                     />
                                 </div>
-                                <div className="col-span-3 space-y-1">
-                                    <Label className="text-[10px] uppercase">Complemento</Label>
+                                <div className="col-span-1 xs:col-span-3 space-y-1">
+                                    <Label className="text-[10px] uppercase font-bold">Complemento</Label>
                                     <Input 
                                         name="complemento" 
                                         value={addressData.complemento} 
                                         onChange={(e) => setAddressData(prev => ({ ...prev, complemento: e.target.value }))}
-                                        className="h-9"
+                                        className="h-10 sm:h-9"
                                         placeholder="Ap, Bloco, etc"
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-2">
                                 <div className="space-y-1">
-                                    <Label className="text-[10px] uppercase">Bairro</Label>
+                                    <Label className="text-[10px] uppercase font-bold">Bairro</Label>
                                     <Input 
                                         name="bairro" 
                                         value={addressData.bairro} 
                                         onChange={(e) => setAddressData(prev => ({ ...prev, bairro: e.target.value }))}
-                                        className="h-9"
+                                        className="h-10 sm:h-9"
                                     />
                                 </div>
-                                <div className="grid grid-cols-3 gap-2">
-                                    <div className="col-span-2 space-y-1">
-                                        <Label className="text-[10px] uppercase">Cidade</Label>
+                                <div className="grid grid-cols-1 xs:grid-cols-3 gap-3 sm:gap-2">
+                                    <div className="xs:col-span-2 space-y-1">
+                                        <Label className="text-[10px] uppercase font-bold">Cidade</Label>
                                         <Input 
                                             name="cidade" 
                                             value={addressData.cidade} 
                                             onChange={(e) => setAddressData(prev => ({ ...prev, cidade: e.target.value }))}
-                                            className="h-9"
+                                            className="h-10 sm:h-9"
                                         />
                                     </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-[10px] uppercase">UF</Label>
+                                    <div className="xs:col-span-1 space-y-1">
+                                        <Label className="text-[10px] uppercase font-bold">UF</Label>
                                         <Input 
                                             name="estado" 
                                             maxLength={2} 
                                             value={addressData.estado} 
                                             onChange={(e) => setAddressData(prev => ({ ...prev, estado: e.target.value.toUpperCase() }))}
-                                            className="h-9 uppercase"
+                                            className="h-10 sm:h-9 uppercase"
                                         />
                                     </div>
                                 </div>

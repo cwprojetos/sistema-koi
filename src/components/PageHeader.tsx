@@ -7,11 +7,11 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle }: PageHeaderProps) {
   return (
-    <div className="flex items-center gap-4 mb-8">
-      <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-      <div>
-        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">{title}</h1>
-        {subtitle && <p className="text-base text-muted-foreground mt-1 font-medium">{subtitle}</p>}
+    <div className="flex items-start sm:items-center gap-4 mb-8 min-w-0">
+      <SidebarTrigger className="text-muted-foreground hover:text-foreground mt-1 sm:mt-0" />
+      <div className="min-w-0 flex-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight truncate">{title}</h1>
+        {subtitle && <p className="text-sm sm:text-base text-muted-foreground mt-1 font-medium break-words">{subtitle}</p>}
       </div>
     </div>
   );
