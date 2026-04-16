@@ -32,6 +32,10 @@ export function LiveCaptionsDialog() {
     // Needed because on mobile Android, event.resultIndex can reset to 0
     // causing already-final results to be re-appended (word repetition bug).
     const lastFinalIndexRef  = useRef(0);
+    // True while the user wants the session active.
+    // On mobile, onend fires constantly even with continuous=true.
+    // If this flag is true when onend fires, we auto-restart the engine.
+    const shouldRestartRef   = useRef(false);
 
     const isListening = sessionState === 'active';
 
@@ -104,12 +108,26 @@ export function LiveCaptionsDialog() {
             }
         };
 
-        // With continuous=true, onend only fires when we call .stop() ourselves
-        // or when a fatal error occurs. NEVER restart here.
+        // On desktop, continuous=true keeps engine alive and onend only fires
+        // on explicit stop. On MOBILE (Android Chrome), the engine stops after
+        // each utterance/silence and fires onend — so we must auto-restart.
         rec.onend = () => {
-            console.log("[SR] onend — sessão encerrada");
+            console.log("[SR] onend");
             setInterim("");
-            setSessionState('idle');
+            if (shouldRestartRef.current && recognitionRef.current) {
+                console.log("[SR] onend — auto-restarting (mobile behavior)");
+                try {
+                    recognitionRef.current.start();
+                } catch (e: any) {
+                    if (e.name !== "InvalidStateError") {
+                        console.error("[SR] restart error:", e);
+                        shouldRestartRef.current = false;
+                        setSessionState('idle');
+                    }
+                }
+            } else {
+                setSessionState('idle');
+            }
         };
 
         recognitionRef.current = rec;
@@ -117,6 +135,7 @@ export function LiveCaptionsDialog() {
 
         return () => {
             console.log("[SR] cleanup");
+            shouldRestartRef.current = false; // prevent pending auto-restart
             if (recognitionRef.current) {
                 try { recognitionRef.current.stop(); } catch (_) {}
                 recognitionRef.current = null;
@@ -148,7 +167,8 @@ export function LiveCaptionsDialog() {
         setTranscript("");
         setInterim("");
         finalTranscriptRef.current = "";
-        lastFinalIndexRef.current  = 0; // reset index tracker on new session
+        lastFinalIndexRef.current  = 0;
+        shouldRestartRef.current   = true; // allow auto-restart on mobile
         setSessionState('starting');
 
         // ── Camera (video-only stream, no audio) — optional ───────────────────
@@ -195,7 +215,9 @@ export function LiveCaptionsDialog() {
     // ── Stop session ──────────────────────────────────────────────────────────
     const stopSession = () => {
         console.log("[SR] stopSession");
+        shouldRestartRef.current   = false; // prevent auto-restart on mobile
         finalTranscriptRef.current = "";
+        lastFinalIndexRef.current  = 0;
 
         if (cameraStreamRef.current) {
             cameraStreamRef.current.getTracks().forEach(t => t.stop());
