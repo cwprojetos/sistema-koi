@@ -51,7 +51,7 @@ export function LiveCaptionsDialog() {
 
         const rec = new SR();
         rec.lang           = "pt-BR";
-        rec.continuous     = true;   // stay alive — NO manual restart on onend
+        rec.continuous     = false;  // False + Auto-restart manual = Mais rápido e preciso no mobile
         rec.interimResults = true;
 
         rec.onstart = () => {
@@ -59,28 +59,28 @@ export function LiveCaptionsDialog() {
             setSessionState('active');
         };
 
-        let sessionFinalText = ""; // Armazena o texto final acumulado DESTA sessão/instância do microfone
+        let sessionFinalText = "";
 
         rec.onresult = (event: any) => {
-            let currentSessionFinal = "";
+            let currentFinal = "";
             let interim = "";
 
-            // Percorre TODO o buffer de resultados da engine atual
-            for (let i = 0; i < event.results.length; i++) {
-                const result = event.results[i];
-                if (result.isFinal) {
-                    currentSessionFinal += result[0].transcript.trim() + " ";
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const res = event.results[i];
+                if (res.isFinal) {
+                    currentFinal += res[0].transcript;
                 } else {
-                    interim = result[0].transcript;
+                    interim = res[0].transcript;
                 }
             }
 
-            // sessionFinalText guarda o que já foi confirmado nesta instância
-            sessionFinalText = currentSessionFinal;
+            if (currentFinal) {
+                sessionFinalText += currentFinal + " ";
+            }
 
-            // Exibição: Histórico das sessões passadas + O que foi finalizado nesta sessão
-            const fullTranscript = (finalTranscriptRef.current + " " + currentSessionFinal).trim();
-            setTranscript(fullTranscript.slice(-600)); // Limita o tamanho da legenda na tela
+            // Exibe imediatamente o que temos (Histórico + O que foi finalizado agora + O que está sendo falado)
+            const displayFinal = (finalTranscriptRef.current + " " + sessionFinalText).trim();
+            setTranscript(displayFinal.slice(-300)); // Menor buffer = mais rápido
             setInterim(interim);
         };
 
@@ -109,23 +109,25 @@ export function LiveCaptionsDialog() {
             console.log("[SR] onend");
             setInterim("");
 
-            // Salva o progresso da sessão que acabou de fechar no histórico geral
             if (sessionFinalText.trim()) {
-                finalTranscriptRef.current = (finalTranscriptRef.current + " " + sessionFinalText).trim().slice(-600);
-                sessionFinalText = ""; // Reseta o acumulador local para a próxima volta
+                const history = finalTranscriptRef.current.trim();
+                const current = sessionFinalText.trim();
+
+                // DE-DUPLICAÇÃO: Se o histórico já termina com o que começamos aqui, não duplica
+                // (O Android costuma repetir a última palavra ao reiniciar)
+                if (!history.endsWith(current.split(' ')[0])) {
+                    finalTranscriptRef.current = (history + " " + current).trim().slice(-300);
+                }
+                sessionFinalText = "";
             }
 
-            if (shouldRestartRef.current && recognitionRef.current) {
-                console.log("[SR] onend — auto-restarting (mobile mode)");
-                try {
-                    recognitionRef.current.start();
-                } catch (e: any) {
-                    if (e.name !== "InvalidStateError") {
-                        console.error("[SR] restart error:", e);
-                        shouldRestartRef.current = false;
-                        setSessionState('idle');
+            if (shouldRestartRef.current) {
+                // Pequeno delay para o microfone "respirar" e não bugar no mobile
+                setTimeout(() => {
+                    if (shouldRestartRef.current && recognitionRef.current) {
+                        try { recognitionRef.current.start(); } catch (e) {}
                     }
-                }
+                }, 100);
             } else {
                 setSessionState('idle');
             }
