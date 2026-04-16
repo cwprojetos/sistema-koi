@@ -45,7 +45,16 @@ export default function Midia() {
 
   const afazeresMutation = useMutation({
     mutationFn: (data: any) => editingItem?.id ? midiaAfazeresApi.update(editingItem.id, data) : midiaAfazeresApi.create(data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['afazeres_midia'] }); setIsModalOpen(false); setEditingItem(null); toast.success("Salvo!"); }
+    onSuccess: () => { 
+      queryClient.invalidateQueries({ queryKey: ['afazeres_midia'] }); 
+      setIsModalOpen(false); 
+      setEditingItem(null); 
+      toast.success("Salvo!"); 
+    },
+    onError: (err: any) => {
+      console.error("Erro ao salvar afazer:", err);
+      toast.error(`Erro ao salvar: ${err.message}`);
+    }
   });
 
   const escalas = (isErrorEscala || !escalaData) ? mockEscala : escalaData;

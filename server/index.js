@@ -466,12 +466,24 @@ const createCrudRoutes = (tableName, moduleName, orderField = 'id', postAuthLeve
     app.post(`/api/${tableName}`, authenticateToken, authorize(moduleName, postAuthLevel), async (req, res) => {
         try {
             const finalChurchId = req.user.role === 'super_admin' ? (req.body.church_id || 1) : req.user.church_id;
-            const data = { ...req.body, church_id: finalChurchId };
+            
+            // Sanitize data: convert empty strings to null and ensure church_id is set
+            const data = { ...req.body };
+            Object.keys(data).forEach(key => {
+                if (data[key] === '') data[key] = null;
+            });
+            data.church_id = finalChurchId;
+
+            console.log(`INSERTING INTO ${tableName}:`, data);
             const [result] = await pool.query(`INSERT INTO ${tableName} SET ?`, [data]);
             res.json({ id: result.insertId, ...data });
         } catch (err) {
             console.error(`ERROR creating ${tableName}:`, err);
-            res.status(500).json({ error: `Failed to create ${tableName}`, details: err.message });
+            res.status(500).json({ 
+                error: `Failed to create ${tableName}`, 
+                details: err.message,
+                sqlMessage: err.sqlMessage 
+            });
         }
     });
 

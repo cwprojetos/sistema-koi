@@ -8,25 +8,10 @@ async function check() {
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        port: process.env.DB_PORT,
+        port: parseInt(process.env.DB_PORT || '3306')
     });
-
-    try {
-        const [tables] = await pool.query('SHOW TABLES');
-        const tableNames = tables.map(t => Object.values(t)[0]);
-        for (const t of tableNames) {
-            const [rows] = await pool.query('SELECT COUNT(*) as c FROM ' + t);
-            if (rows[0].c > 0) {
-                console.log(`\nTable ${t} has ${rows[0].c} records. Latest record:`);
-                const [latest] = await pool.query(`SELECT * FROM ${t} ORDER BY id DESC LIMIT 1`);
-                console.log(JSON.stringify(latest[0], null, 2));
-            }
-        }
-    } catch (err) {
-        console.error('Error:', err.message);
-    } finally {
-        await pool.end();
-    }
+    const [rows] = await pool.query('DESCRIBE afazeres_midia');
+    console.log(rows);
+    await pool.end();
 }
-
 check();
