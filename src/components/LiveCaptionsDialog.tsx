@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Camera, Mic, X, Loader2, Video, Languages, Youtube, MonitorPlay } from "lucide-react";
+import { Camera, Mic, X, Video, Languages, Youtube, MonitorPlay } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useConfig } from "@/contexts/ConfigContext";
 
-// Extend Window interface for SpeechRecognition
 declare global {
     interface Window {
         SpeechRecognition: any;
@@ -14,256 +13,203 @@ declare global {
 }
 
 export function LiveCaptionsDialog() {
-    const [isOpen, setIsOpen] = useState(false);
-    const [isListening, setIsListening] = useState(false);
-    const [transcript, setTranscript] = useState("");
-    const [interimTranscript, setInterimTranscript] = useState("");
-    const [isCameraActive, setIsCameraActive] = useState(false);
-    const [mode, setMode] = useState<'selection' | 'camera' | 'youtube'>('selection');
+    const [isOpen, setIsOpen]             = useState(false);
+    const [isListening, setIsListening]   = useState(false);
+    const [transcript, setTranscript]     = useState("");
+    const [interimTranscript, setInterim] = useState("");
+    const [isCameraActive, setCamera]     = useState(false);
+    const [mode, setMode]                 = useState<'selection' | 'camera' | 'youtube'>('selection');
+
     const { config } = useConfig();
 
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const recognitionRef = useRef<any>(null);
-    const streamRef = useRef<MediaStream | null>(null);
-    // Ref to control auto-restart without stale closures
-    const shouldRestartRef = useRef(false);
-    const finalTranscriptAccRef = useRef(""); // accumulates final text across restarts
-    const lastProcessedIndexRef = useRef(0); // guards against re-processing same results on mobile
+    const videoRef            = useRef<HTMLVideoElement>(null);
+    const recognitionRef      = useRef<any>(null);
+    const streamRef           = useRef<MediaStream | null>(null);
+    const finalTranscriptRef  = useRef("");   // accumulates final text
 
-    // Initialize Speech Recognition once
+    // ── Build recognition instance when dialog opens ─────────────────────────
     useEffect(() => {
         if (!isOpen) return;
 
-        console.log("Initializing Speech Recognition...");
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            console.error("Browser does not support Speech Recognition.");
             toast.error("Seu navegador não suporta reconhecimento de voz.");
             return;
         }
 
-        const recognition = new SpeechRecognition();
-        recognition.lang = "pt-BR";
-        // continuous=true causes duplicate events on Android/Safari; managed manually via onend restart
-        recognition.continuous = false;
-        recognition.interimResults = true;
+        const rec = new SpeechRecognition();
+        rec.lang            = "pt-BR";
+        rec.continuous      = true;   // engine stays alive — NO manual restarts needed
+        rec.interimResults  = true;
 
-        recognition.onstart = () => {
-            console.log("Speech Recognition started");
+        rec.onstart = () => {
+            console.log("[SR] started");
             setIsListening(true);
         };
 
-        recognition.onresult = (event: any) => {
+        rec.onresult = (event: any) => {
             let newFinal = "";
-            let interim = "";
+            let interim  = "";
 
-            // Start from whichever is greater: event.resultIndex or the last index we already processed.
-            // This prevents re-processing the same results when the engine restarts on mobile.
-            const startIndex = Math.max(event.resultIndex, lastProcessedIndexRef.current);
-
-            for (let i = startIndex; i < event.results.length; ++i) {
-                const result = event.results[i];
-                if (result.isFinal) {
-                    newFinal += result[0].transcript.trim() + " ";
-                    lastProcessedIndexRef.current = i + 1; // mark as processed
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const r = event.results[i];
+                if (r.isFinal) {
+                    newFinal += r[0].transcript.trim() + " ";
                 } else {
-                    interim = result[0].transcript; // interim always replaces — only last partial matters
+                    interim = r[0].transcript;
                 }
             }
 
             if (newFinal.trim()) {
-                finalTranscriptAccRef.current = (finalTranscriptAccRef.current + " " + newFinal).trim().slice(-400);
-                setTranscript(finalTranscriptAccRef.current);
+                finalTranscriptRef.current = (finalTranscriptRef.current + " " + newFinal)
+                    .trim()
+                    .slice(-600);
+                setTranscript(finalTranscriptRef.current);
             }
-            // Interim always replaces (it's the current partial word/phrase)
-            setInterimTranscript(interim);
+            setInterim(interim);
         };
 
-        recognition.onerror = (event: any) => {
-            console.error("Speech Recognition Error:", event.error, event.message || "");
-            if (event.error === 'not-allowed') {
-                toast.error("Permissão de microfone negada ou bloqueada pelo sistema. Verifique as configurações do navegador.");
-                shouldRestartRef.current = false;
-            } else if (event.error === 'network') {
-                toast.error("Erro de rede no reconhecimento de voz.");
-            } else if (event.error === 'no-speech') {
-                console.warn("No speech detected, will restart if active.");
-            } else {
-                console.warn(`Recognition error: ${event.error}`);
-            }
-        };
-
-        recognition.onend = () => {
-            console.log("Speech Recognition ended. shouldRestart:", shouldRestartRef.current);
-            setInterimTranscript(""); // clear any dangling interim on session end
-            // Use the ref — never reads from stale closure
-            if (shouldRestartRef.current && recognitionRef.current) {
-                // Small delay before restart avoids rapid-fire start/stop on mobile
-                setTimeout(() => {
-                    if (!shouldRestartRef.current || !recognitionRef.current) return;
-                    try {
-                        console.log("Restarting Speech Recognition...");
-                        // Reset index guard: new session, new result array
-                        lastProcessedIndexRef.current = 0;
-                        recognitionRef.current.start();
-                    } catch (e) {
-                        console.error("Failed to restart:", e);
-                        shouldRestartRef.current = false;
-                        setIsListening(false);
-                    }
-                }, 250);
-            } else {
+        rec.onerror = (event: any) => {
+            console.error("[SR] error:", event.error);
+            if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+                toast.error("Permissão de microfone negada. Verifique as configurações do navegador.");
                 setIsListening(false);
+            } else if (event.error === "no-speech") {
+                // Normal silence — continuous=true keeps us alive, nothing to do
+                console.log("[SR] no-speech (silence detected)");
+            } else if (event.error === "network") {
+                toast.error("Erro de rede no reconhecimento de voz.");
+            } else {
+                console.warn("[SR] error:", event.error);
             }
         };
 
-        recognitionRef.current = recognition;
+        // With continuous=true this should ONLY fire when we call .stop() ourselves.
+        // Do NOT restart here — that causes the infinite loop.
+        rec.onend = () => {
+            console.log("[SR] ended");
+            setInterim("");
+            setIsListening(false);
+        };
+
+        recognitionRef.current = rec;
 
         return () => {
-            console.log("Cleaning up Speech Recognition...");
+            console.log("[SR] cleanup");
             if (recognitionRef.current) {
-                try { recognitionRef.current.stop(); } catch (e) {}
+                try { recognitionRef.current.stop(); } catch (_) {}
                 recognitionRef.current = null;
             }
         };
     }, [isOpen]);
 
+    // ── Tear down when dialog closes ──────────────────────────────────────────
+    useEffect(() => {
+        if (!isOpen) stopSession();
+    }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── Start session: mic required, camera optional ──────────────────────────
     const startSession = async () => {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        if (!navigator.mediaDevices?.getUserMedia) {
             toast.error("O sistema requer uma conexão segura (HTTPS).");
             return;
         }
+        if (!recognitionRef.current) {
+            toast.error("Erro interno: reconhecimento de voz não inicializado.");
+            return;
+        }
 
+        // Reset text
+        setTranscript("");
+        setInterim("");
+        finalTranscriptRef.current = "";
+
+        // Step 1 — Request camera + mic; fall back to mic-only
+        let cameraGranted = false;
         try {
             toast.info("Acessando dispositivos...");
-            
-            let stream: MediaStream | null = null;
-            // Use a local variable to track camera state synchronously (React setState is async)
-            let cameraGranted = false;
-            try {
-                // Request BOTH audio and video.
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: true 
-                });
-                cameraGranted = true;
-                setIsCameraActive(true);
-                console.log("Camera and Microphone access granted.");
-            } catch (mediaError: any) {
-                console.warn("Could not access camera, trying audio-only fallback", mediaError);
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    cameraGranted = false;
-                    setIsCameraActive(false);
-                    toast.warning("Iniciando apenas com microfone (câmera indisponível).");
-                    console.log("Microphone access granted (no camera).");
-                } catch (audioError: any) {
-                    console.error("Critical: Microphone access denied", audioError);
-                    toast.error("Permissão de microfone é obrigatória para as legendas.");
-                    return;
-                }
-            }
-
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             streamRef.current = stream;
-            
-            // Wait for video element to be available if camera is active
-            // NOTE: use local variable `cameraGranted`, NOT the state (which is async)
-            if (cameraGranted) {
-                setTimeout(async () => {
-                    if (videoRef.current && stream) {
-                        videoRef.current.srcObject = stream;
-                        try { 
-                            await videoRef.current.play(); 
-                        } catch (e) { 
-                            console.error("Video play error:", e); 
-                        }
-                    }
-                }, 100);
-            }
+            cameraGranted = true;
+            setCamera(true);
+            console.log("[Media] camera + mic granted");
 
-            // Reset transcript accumulators
-            setTranscript("");
-            setInterimTranscript("");
-            finalTranscriptAccRef.current = "";
-            lastProcessedIndexRef.current = 0;
-
-            if (recognitionRef.current) {
-                try {
-                    // Mark that we WANT continuous listening (used in onend to decide restart)
-                    shouldRestartRef.current = true;
-                    console.log("Starting Speech Recognition...");
-                    // Do NOT call stop() here — it triggers onend which calls start() again (double start)
-                    recognitionRef.current.start();
-                    setIsListening(true);
-                } catch (e: any) {
-                    console.error("Recognition start error:", e);
-                    if (e.name === 'InvalidStateError') {
-                        // Already running — that's fine, just mark as listening
-                        setIsListening(true);
-                    } else {
-                        toast.error("Erro ao iniciar reconhecimento de voz.");
-                        shouldRestartRef.current = false;
-                    }
+            setTimeout(() => {
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.play().catch(e => console.error("[Video] play error:", e));
                 }
-            } else {
-                console.error("Speech Recognition not initialized");
-                toast.error("Erro interno: Reconhecimento de voz não inicializado.");
+            }, 100);
+        } catch {
+            console.warn("[Media] camera unavailable, trying mic-only");
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                streamRef.current = stream;
+                setCamera(false);
+                toast.warning("Iniciando apenas com microfone (câmera indisponível).");
+                console.log("[Media] mic-only granted");
+            } catch (audioErr: any) {
+                console.error("[Media] mic denied:", audioErr);
+                toast.error("Permissão de microfone é obrigatória para as legendas.");
+                return;
             }
-
-            toast.success("Monitoramento iniciado!");
-        } catch (err: any) {
-            console.error("Critical access error:", err);
-            toast.error("Erro ao iniciar sessão: " + err.message);
         }
+
+        // Step 2 — Start recognition (only once; continuous keeps it running)
+        try {
+            console.log("[SR] starting...");
+            recognitionRef.current.start();
+        } catch (e: any) {
+            if (e.name === "InvalidStateError") {
+                // Already running — treat as success
+                console.warn("[SR] already running, skipping start");
+                setIsListening(true);
+            } else {
+                console.error("[SR] start error:", e);
+                toast.error("Erro ao iniciar reconhecimento de voz.");
+                return;
+            }
+        }
+
+        toast.success("Monitoramento iniciado!");
     };
 
+    // ── Stop session ──────────────────────────────────────────────────────────
     const stopSession = () => {
-        console.log("Stopping session...");
-        // Signal onend NOT to restart before calling stop()
-        shouldRestartRef.current = false;
-        finalTranscriptAccRef.current = "";
+        console.log("[SR] stopping session");
+        finalTranscriptRef.current = "";
+
         if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current.getTracks().forEach(t => t.stop());
             streamRef.current = null;
         }
+
         if (recognitionRef.current) {
-            try { recognitionRef.current.stop(); } catch (e) {}
+            try { recognitionRef.current.stop(); } catch (_) {}
         }
+
         setIsListening(false);
-        setIsCameraActive(false);
+        setCamera(false);
         setTranscript("");
-        setInterimTranscript("");
+        setInterim("");
         setMode('selection');
     };
 
+    // ── YouTube embed URL ─────────────────────────────────────────────────────
     const getYoutubeEmbedUrl = (url: string) => {
         if (!url) return "";
         try {
-            let videoId = "";
-            if (url.includes("v=")) {
-                videoId = url.split("v=")[1].split("&")[0];
-            } else if (url.includes("youtu.be/")) {
-                videoId = url.split("youtu.be/")[1].split("?")[0];
-            } else if (url.includes("live/")) {
-                videoId = url.split("live/")[1].split("?")[0];
-            }
-            
-            // cc_load_policy=1: Forces captions
-            // cc_lang_pref=pt: Prefers Portuguese
-            // autoplay=1: Autoplays
-            // mute=1: Often required for autoplay (user can unmute)
-            return `https://www.youtube.com/embed/${videoId}?autoplay=1&cc_load_policy=1&cc_lang_pref=pt&hl=pt&rel=0`;
-        } catch (e) {
+            let id = "";
+            if (url.includes("v="))          id = url.split("v=")[1].split("&")[0];
+            else if (url.includes("youtu.be/")) id = url.split("youtu.be/")[1].split("?")[0];
+            else if (url.includes("live/"))   id = url.split("live/")[1].split("?")[0];
+            return `https://www.youtube.com/embed/${id}?autoplay=1&cc_load_policy=1&cc_lang_pref=pt&hl=pt&rel=0`;
+        } catch {
             return url;
         }
     };
 
-    useEffect(() => {
-        if (!isOpen) {
-            stopSession();
-        }
-    }, [isOpen]);
-
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
@@ -274,9 +220,12 @@ export function LiveCaptionsDialog() {
                     <div className="bg-[#E91E63] p-4 rounded-xl shadow-[6px_6px_0px_rgba(233,30,99,0.2)] border-2 border-[#880E4F] text-white">
                         <Languages className="w-10 h-10" />
                     </div>
-                    <span className="text-[12px] font-black text-[#E91E63] tracking-tighter uppercase leading-none">ASSISTIR O CULTO</span>
+                    <span className="text-[12px] font-black text-[#E91E63] tracking-tighter uppercase leading-none">
+                        ASSISTIR O CULTO
+                    </span>
                 </button>
             </DialogTrigger>
+
             <DialogContent className="sm:max-w-[90vw] h-[90vh] bg-[#1a1a1a] border-2 border-accent text-white p-0 overflow-hidden flex flex-col">
                 <DialogHeader className="p-4 border-b border-white/10 flex-row justify-between items-center space-y-0">
                     <DialogTitle className="text-xl font-black text-white flex items-center gap-2 uppercase tracking-tighter">
@@ -286,6 +235,8 @@ export function LiveCaptionsDialog() {
                 </DialogHeader>
 
                 <div className="flex-1 relative bg-black overflow-hidden flex flex-col">
+
+                    {/* ── Mode selection ─────────────────────────────────── */}
                     {mode === 'selection' && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center space-y-8 bg-gradient-to-b from-[#1a1a1a] to-black">
                             <div className="text-center space-y-2 mb-4">
@@ -294,10 +245,9 @@ export function LiveCaptionsDialog() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl px-6">
-                                {/* Option YouTube */}
-                                <button 
+                                <button
                                     onClick={() => setMode('youtube')}
-                                    className="flex flex-col items-center gap-4 p-8 bg-[#212351] rounded-2xl border-4 border-accent hover:bg-accent/20 transition-all group group-hover:scale-105"
+                                    className="flex flex-col items-center gap-4 p-8 bg-[#212351] rounded-2xl border-4 border-accent hover:bg-accent/20 transition-all"
                                 >
                                     <div className="bg-[#FF0000] p-4 rounded-full shadow-lg">
                                         <Youtube className="w-10 h-10 text-white" />
@@ -308,10 +258,9 @@ export function LiveCaptionsDialog() {
                                     </div>
                                 </button>
 
-                                {/* Option Camera */}
-                                <button 
+                                <button
                                     onClick={() => setMode('camera')}
-                                    className="flex flex-col items-center gap-4 p-8 bg-[#212351] rounded-2xl border-4 border-white/10 hover:border-white/30 hover:bg-white/5 transition-all group"
+                                    className="flex flex-col items-center gap-4 p-8 bg-[#212351] rounded-2xl border-4 border-white/10 hover:border-white/30 hover:bg-white/5 transition-all"
                                 >
                                     <div className="bg-emerald-500 p-4 rounded-full shadow-lg">
                                         <Camera className="w-10 h-10 text-white" />
@@ -325,22 +274,18 @@ export function LiveCaptionsDialog() {
                         </div>
                     )}
 
+                    {/* ── YouTube mode ────────────────────────────────────── */}
                     {mode === 'youtube' && (
                         <div className="flex-1 flex flex-col relative">
-                            <iframe 
-                                src={getYoutubeEmbedUrl(config.youtube_link)} 
+                            <iframe
+                                src={getYoutubeEmbedUrl(config.youtube_link)}
                                 className="w-full h-full border-0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 allowFullScreen
                                 title="YouTube Live Stream"
-                            ></iframe>
+                            />
                             <div className="absolute top-4 right-4 z-50">
-                                <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    className="rounded-full w-12 h-12 shadow-xl"
-                                    onClick={stopSession}
-                                >
+                                <Button variant="destructive" size="icon" className="rounded-full w-12 h-12 shadow-xl" onClick={stopSession}>
                                     <X className="w-6 h-6" />
                                 </Button>
                             </div>
@@ -352,6 +297,7 @@ export function LiveCaptionsDialog() {
                         </div>
                     )}
 
+                    {/* ── Camera mode – waiting to start ──────────────────── */}
                     {mode === 'camera' && !isListening && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6">
                             <div className="bg-[#212351] p-8 rounded-full animate-pulse border-4 border-accent">
@@ -362,11 +308,7 @@ export function LiveCaptionsDialog() {
                                 <p className="text-gray-400 max-w-md px-8">O app usará seu microfone para gerar legendas locais em tempo real.</p>
                             </div>
                             <div className="flex gap-4">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setMode('selection')}
-                                    className="border-white/20 text-white font-bold"
-                                >
+                                <Button variant="outline" onClick={() => setMode('selection')} className="border-white/20 text-white font-bold">
                                     VOLTAR
                                 </Button>
                                 <Button
@@ -379,30 +321,27 @@ export function LiveCaptionsDialog() {
                         </div>
                     )}
 
-                    {/* Caption view: shown when listening — with or without camera */}
+                    {/* ── Camera mode – active captions ───────────────────── */}
                     {mode === 'camera' && isListening && (
                         <>
-                            {/* Video Viewport — only rendered when camera is available */}
                             {isCameraActive && (
                                 <video
                                     ref={videoRef}
                                     autoPlay
                                     playsInline
-                                    muted={true}
+                                    muted
                                     className="w-full h-full object-cover opacity-60"
                                 />
                             )}
 
-                            {/* Captions Overlay */}
                             <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent min-h-[40%] flex flex-col justify-end">
                                 <div className="max-w-4xl mx-auto w-full space-y-4">
                                     <div className="flex items-center gap-2">
                                         <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
                                         <span className="text-xs font-black tracking-widest uppercase text-red-500">
-                                            AO VIVO - {isCameraActive ? 'CÂMERA + MICROFONE' : 'MICROFONE'}
+                                            AO VIVO — {isCameraActive ? 'CÂMERA + MICROFONE' : 'MICROFONE'}
                                         </span>
                                     </div>
-
                                     <div className="space-y-2">
                                         <p className="text-2xl md:text-3xl font-black text-white/60 leading-tight">
                                             {transcript}
@@ -414,14 +353,8 @@ export function LiveCaptionsDialog() {
                                 </div>
                             </div>
 
-                            {/* Controls */}
-                            <div className="absolute top-4 right-4 flex gap-4">
-                                <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    className="rounded-full w-12 h-12"
-                                    onClick={stopSession}
-                                >
+                            <div className="absolute top-4 right-4">
+                                <Button variant="destructive" size="icon" className="rounded-full w-12 h-12" onClick={stopSession}>
                                     <X className="w-6 h-6" />
                                 </Button>
                             </div>
@@ -430,13 +363,11 @@ export function LiveCaptionsDialog() {
                 </div>
 
                 <div className="p-4 bg-[#212351] flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <Mic className={`w-4 h-4 ${isListening ? 'text-green-400 animate-bounce' : 'text-gray-400'}`} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">
-                                Status do Áudio: {isListening ? 'Captando' : 'Inativo'}
-                            </span>
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <Mic className={`w-4 h-4 ${isListening ? 'text-green-400 animate-bounce' : 'text-gray-400'}`} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">
+                            Status do Áudio: {isListening ? 'Captando' : 'Inativo'}
+                        </span>
                     </div>
                     <span className="text-[10px] font-bold text-white/50 uppercase italic">
                         Sistema de Acessibilidade v1.0 • KOI - Conectados em Cristo
