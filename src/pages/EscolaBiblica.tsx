@@ -261,46 +261,28 @@ export default function EscolaBiblica() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-12">
-      {/* Pergunta Section */}
-      <section className="bg-white rounded-2xl border-2 border-[#212351]/10 overflow-hidden shadow-sm">
-        <div className="bg-[#212351] p-4 text-white">
-          <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-2">
-             <MessageSquare className="w-5 h-5" /> Faça uma pergunta para o Professor
-          </h2>
-        </div>
-        <form onSubmit={handlePerguntaSubmit} className="p-6 flex flex-col md:flex-row gap-4">
-          <Input 
-            value={nomeAutor}
-            onChange={(e) => setNomeAutor(e.target.value)}
-            placeholder="Seu nome (deixe em branco para Anônimo)"
-            className="md:w-1/4 border-[#212351]/20 h-12"
-          />
-          <Input 
-            value={novaPergunta}
-            onChange={(e) => setNovaPergunta(e.target.value)}
-            placeholder="Qual sua dúvida sobre a lição de hoje?"
-            className="flex-1 border-[#212351]/20 h-12"
-          />
-          <Button type="submit" className="bg-[#212351] hover:bg-[#2b2e6b] px-8 h-12 font-bold gap-2 whitespace-nowrap" disabled={perguntaMutation.isPending}>
-            <Send className="w-4 h-4" /> ENVIAR
-          </Button>
-        </form>
-      </section>
-
-      <div className="flex justify-between items-center mb-6">
-        <PageHeader title="Escola Bíblica" subtitle="Estudos semanais para o crescimento espiritual" />
+    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-12 overflow-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <PageHeader title="Escola Bíblica" subtitle="Estudos semanais" />
         {canEdit && (
           <Dialog open={isModalOpen} onOpenChange={(open) => {
             setIsModalOpen(open);
             if (!open) { setEditingItem(null); setLocalVideoFile(null); setSelectedFile(null); setLocalPerguntasFile(null); setSelectedPerguntasFile(null); }
           }}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-[#212351] hover:bg-[#2b2e6b]" onClick={openNewModal}>
+              <Button className="gap-2 bg-[#212351] hover:bg-[#2b2e6b] w-full sm:w-auto h-11" onClick={openNewModal}>
                 <Plus className="w-4 h-4" /> Novo Estudo
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] border-2 border-[#212351] p-0 overflow-hidden flex flex-col max-h-[90vh]">
+            <DialogContent 
+              onInteractOutside={(e) => {
+                const target = e.target as HTMLElement;
+                if (target?.closest('[role="listbox"]') || target?.closest('[data-radix-select-viewport]')) {
+                  e.preventDefault();
+                }
+              }}
+              className="w-[95vw] sm:max-w-[600px] border-2 border-[#212351] p-0 overflow-hidden flex flex-col max-h-[90vh]"
+            >
               <DialogHeader className="p-6 pb-2">
                 <DialogTitle className="text-xl font-bold text-[#212351] uppercase tracking-tighter">
                   {editingItem ? 'Editar' : 'Novo'} Estudo Bíblico
@@ -308,15 +290,15 @@ export default function EscolaBiblica() {
               </DialogHeader>
               <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-2">
                 <form id="eb-form" onSubmit={handleSave} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Título</Label>
-                      <Input name="titulo" defaultValue={editingItem?.titulo} required className="border-[#212351]/20" />
+                      <Input name="titulo" defaultValue={editingItem?.titulo} required className="border-[#212351]/20 h-11" />
                     </div>
                     <div className="space-y-2">
                       <Label>Tipo de Conteúdo</Label>
                       <Select value={selectedTipo} onValueChange={setSelectedTipo}>
-                        <SelectTrigger className="border-[#212351]/20"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="border-[#212351]/20 h-11"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="video">Vídeo (YouTube)</SelectItem>
                           <SelectItem value="video_drive">Vídeo (Google Drive)</SelectItem>
@@ -328,14 +310,14 @@ export default function EscolaBiblica() {
                   </div>
                   <div className="space-y-4 border-2 border-dashed border-[#212351]/10 rounded-xl p-4 bg-[#212351]/5">
                     <div className="space-y-2">
-                      <Label className="flex items-center gap-2"><Youtube className="w-4 h-4 text-[#FF0000]" /> Link do Vídeo (YouTube ou Google Drive)</Label>
-                      <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://..." className="border-[#212351]/20" disabled={selectedTipo === 'comunicado'} />
+                      <Label className="flex items-center gap-2"><Youtube className="w-4 h-4 text-[#FF0000]" /> Link do Vídeo (YouTube ou Drive)</Label>
+                      <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://..." className="border-[#212351]/20 h-11" disabled={selectedTipo === 'comunicado'} />
                     </div>
                     <div className="relative flex items-center gap-4">
                       <div className="flex-1 h-px bg-[#212351]/10" /><span className="text-[10px] font-black text-[#212351]/30 uppercase tracking-widest">OU</span><div className="flex-1 h-px bg-[#212351]/10" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="flex items-center gap-2"><Upload className="w-4 h-4 text-[#212351]" /> {selectedTipo === 'comunicado' ? "Subir Estudo (PDF/Office)" : "Subir Vídeo"}</Label>
+                      <Label className="flex items-center gap-2"><Upload className="w-4 h-4 text-[#212351]" /> {selectedTipo === 'comunicado' ? "Subir Estudo" : "Subir Vídeo"}</Label>
                       <Input type="file" accept={selectedTipo === 'comunicado' ? ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" : "video/*"} onChange={handleFileChange} className="hidden" ref={fileInputRef} />
                       <Button type="button" variant="outline" className="w-full border-2 border-[#212351]/20 border-dashed hover:bg-[#212351]/5 h-20 flex flex-col gap-1" onClick={() => fileInputRef.current?.click()}>
                         <Upload className="w-6 h-6 text-[#212351]/40" />
@@ -349,26 +331,26 @@ export default function EscolaBiblica() {
                   </div>
                   <div className="space-y-2">
                     <Label>Data</Label>
-                    <Input name="data" type="date" defaultValue={editingItem?.data ? editingItem.data.split('T')[0] : new Date().toISOString().split('T')[0]} required className="border-[#212351]/20" />
+                    <Input name="data" type="date" defaultValue={editingItem?.data ? editingItem.data.split('T')[0] : new Date().toISOString().split('T')[0]} required className="border-[#212351]/20 h-11" />
                   </div>
 
                   <div className="pt-4 border-t border-[#212351]/10 space-y-3">
-                    <Label className="text-[#212351] font-black uppercase tracking-widest text-[10px]">Perguntas de Estudo (Fixas no Mural)</Label>
+                    <Label className="text-[#212351] font-black uppercase tracking-widest text-[10px]">Perguntas de Estudo</Label>
                     <div className="grid grid-cols-1 gap-3">
                       {[1, 2, 3, 4].map(num => (
                         <div key={num} className="space-y-2 p-2 border rounded-md bg-white">
-                          <Input name={`pergunta${num}`} placeholder={`Pergunta ${num}`} defaultValue={editingItem?.[`pergunta${num}`]} className="border-[#212351]/20" />
-                          <Input name={`resposta${num}`} placeholder={`Resposta ${num} (Opcional)`} defaultValue={editingItem?.[`resposta${num}`]} className="border-[#212351]/10 text-xs italic" />
+                          <Input name={`pergunta${num}`} placeholder={`Pergunta ${num}`} defaultValue={editingItem?.[`pergunta${num}`]} className="border-[#212351]/20 h-10" />
+                          <Input name={`resposta${num}`} placeholder={`Resposta ${num}`} defaultValue={editingItem?.[`resposta${num}`]} className="border-[#212351]/10 text-xs italic h-9" />
                         </div>
                       ))}
                     </div>
                     
                     <div className="mt-4 pt-4 border-t border-[#212351]/10 border-dashed space-y-2">
-                       <Label className="flex items-center gap-2"><Upload className="w-4 h-4 text-[#212351]" /> Anexar PDF com as Perguntas e Respostas</Label>
+                       <Label className="flex items-center gap-2"><Upload className="w-4 h-4 text-[#212351]" /> PDF de Perguntas</Label>
                        <Input type="file" accept=".pdf" onChange={handlePerguntasFileChange} className="hidden" ref={perguntasFileInputRef} />
                        <Button type="button" variant="outline" className="w-full border-2 border-[#212351]/20 border-dashed hover:bg-[#212351]/5 h-16 flex flex-col gap-1" onClick={() => perguntasFileInputRef.current?.click()}>
                          <Upload className="w-5 h-5 text-[#212351]/40" />
-                         <span className="text-xs text-[#212351]/60 font-bold">{localPerguntasFile ? "Substituir PDF Anexado" : "Anexar Arquivo PDF"}</span>
+                         <span className="text-xs text-[#212351]/60 font-bold">{localPerguntasFile ? "Substituir PDF" : "Anexar PDF"}</span>
                        </Button>
                     </div>
                   </div>
@@ -384,7 +366,7 @@ export default function EscolaBiblica() {
         )}
       </div>
 
-      {/* Contents Grid - Visível para todos */}
+      {/* Contents Grid */}
       <div className="grid gap-8 sm:grid-cols-2">
         {contents.map((c: any, i: number) => {
           const Icon = tipoIcons[c.tipo] || BookOpen;
@@ -438,8 +420,35 @@ export default function EscolaBiblica() {
       </div>
 
       {/* Pergunta Display Section */}
-      <section className="mt-12 space-y-4">
-        <h2 className="text-2xl font-black text-[#212351] uppercase tracking-tighter border-b-4 border-[#212351] inline-block">Mural de Perguntas</h2>
+      <section className="mt-12 space-y-6">
+        <h2 className="text-2xl font-black text-[#212351] uppercase tracking-tighter border-b-4 border-[#212351] inline-block">Mural de Dúvidas</h2>
+        
+        {/* Form para Nova Pergunta (Movido para perto do mural) */}
+        <div className="bg-white rounded-2xl border-2 border-[#212351]/10 overflow-hidden shadow-sm">
+          <div className="bg-[#212351] p-4 text-white">
+            <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-2">
+               <MessageSquare className="w-5 h-5" /> Faça uma pergunta para o Professor
+            </h2>
+          </div>
+          <form onSubmit={handlePerguntaSubmit} className="p-4 sm:p-6 flex flex-col lg:flex-row gap-4">
+            <Input 
+              value={nomeAutor}
+              onChange={(e) => setNomeAutor(e.target.value)}
+              placeholder="Seu nome (deixe para Anônimo)"
+              className="lg:w-1/4 border-[#212351]/20 h-11"
+            />
+            <Input 
+              value={novaPergunta}
+              onChange={(e) => setNovaPergunta(e.target.value)}
+              placeholder="Qual sua dúvida sobre a lição?"
+              className="flex-1 border-[#212351]/20 h-11"
+            />
+            <Button type="submit" className="bg-[#212351] hover:bg-[#2b2e6b] px-8 h-11 font-bold gap-2 whitespace-nowrap" disabled={perguntaMutation.isPending}>
+              <Send className="w-4 h-4" /> ENVIAR DÚVIDA
+            </Button>
+          </form>
+        </div>
+
         <div className="grid gap-4">
           {/* User submitted questions (Dynamic) - Mural de Dúvidas (Apenas para Professores/Admin) */}
           {canEdit && perguntas.map((p: any) => (

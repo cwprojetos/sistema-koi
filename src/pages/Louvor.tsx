@@ -218,12 +218,12 @@ export default function Louvor() {
     };
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-                <PageHeader title="Louvor" subtitle="Escala e repertório da equipe de louvor" />
-                <div className="flex gap-2">
+        <div className="p-4 md:p-6 max-w-6xl mx-auto overflow-hidden">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6">
+                <PageHeader title="Louvor" subtitle="Escala e repertório" />
+                <div className="flex gap-2 w-full sm:w-auto">
                     {canEdit && (
-                        <Button size="sm" variant="outline" onClick={() => setIsReportModalOpen(true)} className="gap-2 border-accent text-accent hover:bg-accent/10">
+                        <Button size="sm" variant="outline" onClick={() => setIsReportModalOpen(true)} className="gap-2 border-accent text-accent hover:bg-accent/10 w-full sm:w-auto h-11">
                             <FileText className="w-4 h-4" /> Relatório
                         </Button>
                     )}
@@ -245,7 +245,15 @@ export default function Louvor() {
                     setEditingItem(null);
                 }
             }}>
-                <DialogContent className="max-h-[85vh] overflow-y-auto w-full sm:max-w-[450px]">
+                <DialogContent 
+                    onInteractOutside={(e) => {
+                        const target = e.target as HTMLElement;
+                        if (target?.closest('[role="listbox"]') || target?.closest('[data-radix-select-viewport]')) {
+                            e.preventDefault();
+                        }
+                    }}
+                    className="max-h-[85vh] overflow-y-auto w-[95vw] sm:max-w-[450px] p-4 sm:p-6"
+                >
                     <DialogHeader>
                         <DialogTitle>
                             {activeTab === 'assign_music' ? 'Escalar Música' : editingItem?.id ? 'Editar' : 'Novo'} {activeTab === 'escala' ? 'Membro na Escala' : activeTab === 'assign_music' ? '' : 'Repertório'}
