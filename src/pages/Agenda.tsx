@@ -122,13 +122,13 @@ export default function Agenda() {
     });
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6 overflow-hidden">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <PageHeader 
           title="Agenda da Igreja" 
-          subtitle="Programação semanal, cultos e avisos importantes" 
+          subtitle="Programação semanal e avisos" 
         />
-        <div className="relative w-full md:w-80">
+        <div className="relative w-full lg:w-80">
           <Input 
             placeholder="Pesquisar..." 
             value={searchTerm}
@@ -140,7 +140,7 @@ export default function Agenda() {
       </div>
 
       {/* Ações Rápidas: Bíblia e Transmissão com Legendas */}
-      <div className="flex flex-wrap items-center justify-center md:justify-start gap-10 py-8 border-y border-indigo-100 bg-white/50 backdrop-blur-md rounded-3xl px-10 shadow-sm border-t-2 border-t-indigo-500/10">
+      <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-10 py-6 sm:py-8 border-y border-indigo-100 bg-white/50 backdrop-blur-md rounded-3xl px-4 sm:px-10 shadow-sm border-t-2 border-t-indigo-500/10">
         <BibleDialog />
         <LiveCaptionsDialog />
         <LiveStreamButton />
@@ -149,12 +149,12 @@ export default function Agenda() {
       <div className="space-y-12 pb-12">
         {/* SEÇÃO 1: PROGRAMAÇÃO DA SEMANA */}
         <section className="space-y-6">
-          <div className="flex justify-between items-center border-b-2 border-indigo-600/10 pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-2 border-indigo-600/10 pb-4 gap-4">
             <h2 className="text-2xl font-black flex items-center gap-3 text-indigo-600 uppercase tracking-tight">
-              <Calendar className="w-6 h-6" /> Programação da Semana
+              <Calendar className="w-6 h-6" /> Programação
             </h2>
             {canEdit && (
-              <Button onClick={() => { setEditingItem(null); setSelectedTipo("culto"); setIsModalOpen(true); setActiveTab('programacao'); }} className="bg-indigo-600 hover:bg-indigo-700 h-11 px-6 rounded-xl font-bold">
+              <Button onClick={() => { setEditingItem(null); setSelectedTipo("culto"); setIsModalOpen(true); setActiveTab('programacao'); }} className="bg-indigo-600 hover:bg-indigo-700 h-11 px-6 rounded-xl font-bold w-full sm:w-auto">
                 <Plus className="w-5 h-5 mr-2" /> NOVO EVENTO
               </Button>
             )}
@@ -222,12 +222,12 @@ export default function Agenda() {
 
         {/* SEÇÃO 2: AVISOS IMPORTANTES */}
         <section className="space-y-6">
-          <div className="flex justify-between items-center border-b-2 border-amber-600/10 pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-2 border-amber-600/10 pb-4 gap-4">
             <h2 className="text-2xl font-black flex items-center gap-3 text-amber-600 uppercase tracking-tight">
-              <Megaphone className="w-6 h-6" /> Avisos Importantes
+              <Megaphone className="w-6 h-6" /> Avisos
             </h2>
             {canEdit && (
-              <Button onClick={() => { setEditingItem(null); setIsModalOpen(true); setActiveTab('avisos'); }} className="bg-amber-600 hover:bg-amber-700 h-11 px-6 rounded-xl font-bold">
+              <Button onClick={() => { setEditingItem(null); setIsModalOpen(true); setActiveTab('avisos'); }} className="bg-amber-600 hover:bg-amber-700 h-11 px-6 rounded-xl font-bold w-full sm:w-auto">
                 <Plus className="w-5 h-5 mr-2" /> NOVO AVISO
               </Button>
             )}
@@ -257,7 +257,15 @@ export default function Agenda() {
 
 
       <Dialog open={isModalOpen} onOpenChange={(open) => { setIsModalOpen(open); if (!open) setEditingItem(null); }}>
-        <DialogContent className="max-w-md">
+        <DialogContent 
+          onInteractOutside={(e) => {
+            const target = e.target as HTMLElement;
+            if (target?.closest('[role="listbox"]') || target?.closest('[data-radix-select-viewport]')) {
+              e.preventDefault();
+            }
+          }}
+          className="w-[95vw] sm:max-w-md p-4 sm:p-6"
+        >
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editar' : 'Novo'} {activeTab === 'programacao' ? 'Evento' : 'Aviso'}</DialogTitle>
           </DialogHeader>

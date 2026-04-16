@@ -417,7 +417,15 @@ export default function Membros() {
                     setEstadoCivil(editingItem.estado_civil || "Casado(a)");
                 }
             }}>
-                <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar p-4 sm:p-6">
+                <DialogContent 
+                    onInteractOutside={(e) => {
+                        const target = e.target as HTMLElement;
+                        if (target?.closest('[role="listbox"]') || target?.closest('[data-radix-select-viewport]')) {
+                            e.preventDefault();
+                        }
+                    }}
+                    className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar p-4 sm:p-6"
+                >
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold text-[#212351]">{editingItem ? 'Editar' : 'Cadastrar'} Membro</DialogTitle>
                     </DialogHeader>

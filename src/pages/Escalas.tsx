@@ -180,13 +180,13 @@ export default function Escalas() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-12 pb-12">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-12 pb-12 overflow-hidden">
       {/* HEADER DA PÁGINA */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-        <PageHeader title="Escalas dos Cultos" subtitle="Programação completa dos participantes para os próximos eventos" />
-        <div className="relative w-full md:w-80">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+        <PageHeader title="Escalas dos Cultos" subtitle="Programação completa dos participantes" />
+        <div className="relative w-full lg:w-80">
           <Input 
-            placeholder="Pesquisar por dia ou culto..." 
+            placeholder="Pesquisar dia..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 h-11 bg-white/50 backdrop-blur-sm"
@@ -197,9 +197,9 @@ export default function Escalas() {
 
       {/* SEÇÃO PRINCIPAL DE ESCALAS */}
       <section className="space-y-8">
-        <div className="flex justify-between items-center border-b-2 border-indigo-600/10 pb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-2 border-indigo-600/10 pb-4 gap-4">
           <h2 className="text-2xl font-black flex items-center gap-3 text-indigo-600 uppercase tracking-tight">
-            <Users className="w-6 h-6" /> Escalas Confirmadas
+            <Users className="w-6 h-6" /> Escalas
           </h2>
           {isAdmin && (
             <Dialog open={isModalOpen} onOpenChange={(open) => { 
@@ -207,11 +207,19 @@ export default function Escalas() {
                 if (!open) { setEditingItem(null); setFormCulto(""); setFormDataDate(""); } 
             }}>
               <DialogTrigger asChild>
-                <Button className="bg-indigo-600 hover:bg-indigo-700 h-11 px-6 rounded-xl font-bold shadow-lg shadow-indigo-600/20">
+                <Button className="bg-indigo-600 hover:bg-indigo-700 h-11 px-6 rounded-xl font-bold shadow-lg shadow-indigo-600/20 w-full sm:w-auto">
                   <Plus className="w-5 h-5 mr-2" /> NOVA ESCALA
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent 
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement;
+                  if (target?.closest('[role="listbox"]') || target?.closest('[data-radix-select-viewport]')) {
+                    e.preventDefault();
+                  }
+                }}
+                className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+              >
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-indigo-950">Gerenciar Escala</DialogTitle>
                   </DialogHeader>
@@ -279,7 +287,7 @@ export default function Escalas() {
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <h3 className="text-3xl font-black text-indigo-950 uppercase tracking-tighter leading-tight">
+                      <h3 className="text-2xl sm:text-3xl font-black text-indigo-950 uppercase tracking-tighter leading-tight break-words">
                         {escala.culto}
                       </h3>
                       {escala.isDraft && (
