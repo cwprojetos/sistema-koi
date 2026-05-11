@@ -100,15 +100,36 @@ export default function Agenda() {
     }
   };
 
+  const hasDatePassed = (dateStr: string) => {
+    if (!dateStr) return false;
+    try {
+      const datePart = dateStr.split('T')[0];
+      const itemDate = new Date(datePart + "T00:00:00");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return itemDate < today;
+    } catch (e) {
+      return false;
+    }
+  };
+
   const filteredAgenda = (agenda || [])
     .filter((item: any) => {
       const searchLower = searchTerm.toLowerCase();
-      return (
+      const matchesSearch = (
         item.titulo?.toLowerCase().includes(searchLower) ||
         item.pregador?.toLowerCase().includes(searchLower) ||
         item.tema?.toLowerCase().includes(searchLower) ||
         formatDate(item.data).toLowerCase().includes(searchLower)
       );
+
+      // Se há busca ativa, mostrar tudo que corresponde (inclui passadas)
+      if (searchTerm) {
+        return matchesSearch;
+      }
+
+      // Sem busca, ocultar datas passadas
+      return !hasDatePassed(item.data);
     })
     .sort((a: any, b: any) => {
       const dateA = a.data ? new Date(a.data.split('T')[0]).getTime() : 0;
@@ -150,9 +171,14 @@ export default function Agenda() {
         {/* SEÇÃO 1: PROGRAMAÇÃO DA SEMANA */}
         <section className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-2 border-indigo-600/10 pb-4 gap-4">
-            <h2 className="text-2xl font-black flex items-center gap-3 text-indigo-600 uppercase tracking-tight">
-              <Calendar className="w-6 h-6" /> Programação
-            </h2>
+            <div className="flex-1">
+              <h2 className="text-2xl font-black flex items-center gap-3 text-indigo-600 uppercase tracking-tight">
+                <Calendar className="w-6 h-6" /> Programação
+              </h2>
+              <p className="text-sm text-slate-500 mt-2 font-medium">
+                💡 Datas passadas estão ocultas. Use a busca para encontrá-las e conferir quem pregou.
+              </p>
+            </div>
             {canEdit && (
               <Button onClick={() => { setEditingItem(null); setSelectedTipo("culto"); setIsModalOpen(true); setActiveTab('programacao'); }} className="bg-indigo-600 hover:bg-indigo-700 h-11 px-6 rounded-xl font-bold w-full sm:w-auto">
                 <Plus className="w-5 h-5 mr-2" /> NOVO EVENTO
@@ -214,7 +240,11 @@ export default function Agenda() {
             {filteredAgenda.length === 0 && (
               <div className="col-span-full py-16 text-center text-slate-400 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200">
                 <Calendar className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p className="text-xl font-medium">Nenhuma programação encontrada.</p>
+                <p className="text-xl font-medium">
+                  {searchTerm 
+                    ? "Nenhuma programação encontrada na busca." 
+                    : "Nenhuma programação futura. Datas passadas estão ocultas. Use a busca para encontrá-las."}
+                </p>
               </div>
             )}
           </div>
